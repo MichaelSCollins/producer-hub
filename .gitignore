@@ -47,4 +47,10 @@ Thumbs.db
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity 
+.yarn-integrity
+
+# Gradle files
+gradle-temp/
+gradle.zip
+.gradle/
+build/ 
