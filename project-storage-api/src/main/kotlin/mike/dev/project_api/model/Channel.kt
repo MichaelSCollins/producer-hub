@@ -3,13 +3,12 @@ package mike.dev.project_api.model
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 
 @Entity
 @Table(name = "channels")
 class Channel(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    var project: Project,
     @Column(nullable = false)
     var name: String,
     @Column(nullable = false)
@@ -32,4 +31,45 @@ class Channel(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
+
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    lateinit var project: Project
+
+    // No-args constructor for Jackson deserialization
+    constructor() : this(
+//        project = Project(), // This will be set by the service layer
+        name = "",
+        volume = BigDecimal.ZERO,
+        muted = false,
+        solo = false,
+        position = 0
+    )
+
+    companion object {
+        @JsonCreator
+        fun fromJson(
+            @JsonProperty("id") id: Long,
+            @JsonProperty("name") name: String,
+            @JsonProperty("volume") volume: BigDecimal,
+            @JsonProperty("muted") muted: Boolean,
+            @JsonProperty("solo") solo: Boolean,
+            @JsonProperty("position") position: Int,
+            @JsonProperty("effects") effects: MutableList<Effect>,
+            @JsonProperty("tracks") tracks: MutableList<Track>
+        ): Channel {
+            return Channel(
+//                project = Project(), // This will be set by the service layer
+                name = name,
+                volume = volume,
+                muted = muted,
+                solo = solo,
+                position = position
+            ).apply {
+                this.id = id
+                this.effects = effects
+                this.tracks = tracks
+            }
+        }
+    }
 } 

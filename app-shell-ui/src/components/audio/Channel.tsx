@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Channel as ChannelType, AudioTrack as AudioTrackType } from '@/store/audioStore';
+import { Channel as ChannelType, AudioTrack as AudioTrackType } from '@/lib/interface';
 import { AudioTrack } from './AudioTrack';
 import { useAudioUpload } from '@/lib/hooks/useAudioUpload';
 import { useAudioStore } from '@/store/audioStore';
 import { audioStorageApi, AudioFileMetadata } from '@/lib/api/audioStorage';
+import UIJob from '@/lib/facade/UIJob';
 import { projectStorageApi } from '@/lib/api/projectStorage';
-
+const devMode = true;
 interface ChannelProps {
     channel: ChannelType;
     isPlaying: boolean;
     currentTime: number;
     onTrackPositionChange: (trackId: number, startTime: number) => void;
 }
-
 export const Channel = ({
     channel,
     isPlaying,
@@ -21,7 +21,7 @@ export const Channel = ({
 }: ChannelProps) => {
     const { handleDrop, handleDragOver, isUploading } = useAudioUpload({
         channelId: channel.id,
-        audioFileId: channel.tracks[0]?.audioFileId ?? '-1'
+        audioFileId: channel.tracks[0]?.audioFileId
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const setViewportWidth = useAudioStore((state) => state.setViewportWidth);
@@ -32,47 +32,39 @@ export const Channel = ({
     const [savedFiles, setSavedFiles] = useState<AudioFileMetadata[]>([])
     const [isLoadingFiles, setIsLoadingFiles] = useState(false);
     const [showSavedFiles, setShowSavedFiles] = useState(false);
+    const [error, setError] = useState<string | null>();
 
-    const loadSavedFiles = useCallback(async () => {
-        try
-        {
-            setIsLoadingFiles(true);
-            const files = await audioStorageApi.getAllAudioFiles();
-            console.log({ files })
-            setSavedFiles(files);
-        } catch (error)
-        {
-            console.error('Error loading saved files:', error);
-        } finally
-        {
+    const {
+        projectId
+    } = useAudioStore.getState();
+
+    const job = new UIJob().before(() => {
+        setIsLoadingFiles(true);
+        setError(null);
+    })  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .error((error: any) => {
+            setError('Failed to save project... ' + error.messages);
+            console.error('Error saving project:', error);
+        }).after(() => {
             setIsLoadingFiles(false);
-        }
-    }, []);
+        });
+    const loadSavedFiles = async () => {
+        await job.setJobFunction(async () => {
+            return await audioStorageApi.getAllAudioFiles();
+        }).success(async (files: AudioFileMetadata[]) => {
+            setSavedFiles(files)
+        }).execute()
+    }
 
     const handleSaveTrack = useCallback(async (track: AudioTrackType) => {
-        try
-        {
-            const projectId = useAudioStore.getState().projectId;
-            const response = await fetch(track.url);
-            const blob = await response.blob();
-            const file = new File([blob], track.name, { type: blob.type });
-            console.log({ file })
-            const obj = await audioStorageApi.uploadAudio(file, `Track from channel: ${channel.name}`, 'user');
-            track.audioFileId = Number(obj.id);
-            if (projectId && channel.id)
-                await projectStorageApi.updateChannel(projectId, channel.id, {
-                    ...channel,
-                    tracks: channel.tracks.map(t => t.id === track.id ? {
-                        ...t, audioFileId: track.audioFileId
-                    } : t)
-                })
-            await loadSavedFiles();
-        } catch (error)
-        {
-            console.error('Error saving track:', error);
-        }
-    }, [channel, loadSavedFiles]);
+        await job.setJobFunction(async () => {
+            await audioStorageApi.uploadAudioFromProject(
+                track, projectId
+            )
+        }).execute()
+    }, [projectId]);
 
+    const addTrack = useAudioStore.getState().addTrack;
     const handleLoadTrack = useCallback(async (audioFile: AudioFileMetadata) => {
         try
         {
@@ -80,21 +72,43 @@ export const Channel = ({
             {
                 throw new Error('Audio file ID is required');
             }
-            const blob = await audioStorageApi.downloadAudio(audioFile.id);
-            const url = URL.createObjectURL(blob);
-            const addTrack = useAudioStore.getState().addTrack;
-            addTrack(channel.id || -1, {
+
+            // First add the track to the channel
+            addTrack(channel.id, {
                 name: audioFile.filename,
-                url,
                 audioFileId: Number(audioFile.id),
-                channel: channel.id || -1,
                 startTime: 0,
+                position: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             });
+
+            // Then try to save it to the backend if we have a project ID
+            if (projectId)
+            {
+                try
+                {
+                    await projectStorageApi.createTrack(
+                        projectId,
+                        channel.id,
+                        {
+                            name: audioFile.filename,
+                            audioFileId: Number(audioFile.id),
+                            startTime: 0
+                        }
+                    );
+                } catch (error)
+                {
+                    console.error('Failed to save track to backend:', error);
+                    // Don't throw here - we still want the track to be usable even if backend save fails
+                }
+            }
         } catch (error)
         {
             console.error('Error loading track:', error);
+            setError(error instanceof Error ? error.message : 'Failed to load track');
         }
-    }, [channel.id]);
+    }, [addTrack, channel.id, projectId]);
 
     useEffect(() => {
         if (containerRef.current)
@@ -115,12 +129,26 @@ export const Channel = ({
         if (trackId)
         {
             onTrackPositionChange(trackId, startTime);
-        }
-        else
+            // Save track update to backend
+            const track = channel.tracks.find(t => t.id === trackId);
+            if (track && track.id && projectId)
+            {
+                projectStorageApi.updateTrack(
+                    projectId,
+                    channel.id,
+                    track.id,
+                    {
+                        startTime: startTime
+                    }
+                ).catch(error => {
+                    console.error('Failed to save track position:', error);
+                });
+            }
+        } else
         {
             console.error('Track ID is required');
         }
-    }, [onTrackPositionChange]);
+    }, [onTrackPositionChange, channel.id, channel.tracks, projectId]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (e.button !== 0) return; // Only handle left click
@@ -164,7 +192,7 @@ export const Channel = ({
                 <h3 className="text-lg font-semibold text-white">{channel.name}</h3>
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center">
-                        <label className="text-white mr-2">Volume</label>
+                        <label className="text-white mr-2 max-h-32 overflow-y-auto">Volume</label>
                         <input
                             type="range"
                             min="0"
@@ -221,9 +249,9 @@ export const Channel = ({
                     ) : savedFiles.length === 0 ? (
                         <div className="text-gray-400">No saved files found</div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-2  max-h-24 overflow-y-auto">
                             {savedFiles.map((file) => (
-                                <div key={file.id} className="flex items-center justify-between bg-blue-800/50 p-2 rounded">
+                                <div key={file.id} className="flex items-center justify-between bg-blue-800/50 p-2 rounded max-h-24 overflow-y-auto">
                                     <span className="text-white">{file.filename}</span>
                                     <button
                                         className="px-2 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-500"
@@ -237,11 +265,16 @@ export const Channel = ({
                     )}
                 </div>
             )}
-            {JSON.stringify(channel)}
+            <p className='text-red-500 h-full items-center justify-center'>{error}</p>
             <div
                 ref={containerRef}
-                className={`min-h-[100px] border-2 border-dashed ${isUploading ? 'border-yellow-400' : 'border-blue-800'
-                    } rounded-lg p-4 transition-colors relative overflow-x-auto`}
+                className={`min-h-[100px] h-full relative 
+                     rounded-lg p-4 ${isUploading
+                        ? 'border-yellow-400'
+                        : 'border-blue-800'
+                    } transition-colors 
+                     border-2 border-dashed 
+                     overflow-x-auto`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onMouseDown={handleMouseDown}
@@ -281,6 +314,14 @@ export const Channel = ({
                     </div>
                 )}
             </div>
+            {devMode && (
+                <div className="flex flex-col mt-4">
+                    <h4 className="text-white font-semibold mb-2">Dev Info:</h4>
+                    <p className="bg-slate-900 text-xs text-blue-200 my-auto h-16 w-full p-2  overflow-y-auto">
+                        {JSON.stringify(channel)}
+                    </p>
+                </div>
+            )}
         </div>
     );
 }; 

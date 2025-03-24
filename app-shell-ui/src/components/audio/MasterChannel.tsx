@@ -1,4 +1,5 @@
-import { useAudioStore, Effect } from '@/store/audioStore';
+import { Effect } from '@/lib/interface';
+import { useAudioStore } from '@/store/audioStore';
 
 export const MasterChannel = () => {
     const {
@@ -89,9 +90,9 @@ export const MasterChannel = () => {
                 </div>
 
                 <div className="space-y-2">
-                    {masterChannel.effects.map((effect) => (
+                    {masterChannel.effects.map((effect, i) => (
                         <div
-                            key={effect.id}
+                            key={i}
                             className="bg-gray-800 p-3 rounded flex flex-col space-y-2"
                         >
                             <div className="flex items-center justify-between">
@@ -128,7 +129,7 @@ export const MasterChannel = () => {
                                             className="w-24"
                                             onChange={(e) =>
                                                 handleEffectParameterChange(
-                                                    effect.id.toString(),
+                                                    effect.id ?? '<NEW-EFFECT>',
                                                     param,
                                                     Number(e.target.value)
                                                 )

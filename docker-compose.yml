@@ -1,20 +1,20 @@
 version: '3.8'
 
 services:
-  app-shell-ui:
-    build:
-      context: ./app-shell-ui
-      dockerfile: Dockerfile
-    ports:
-      - "3003:3000"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      ph-audio-storage-api:
-        condition: service_started
+  # app-shell-ui:
+  #   build:
+  #     context: ./app-shell-ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3003:3000"
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   depends_on:
+  #     ph-audio-storage-api:
+  #       condition: service_started
   # config-server:
   #   image: springcloud/configserver
   #   ports:

@@ -1,36 +1,6 @@
-import { EffectDto } from '@/lib/api/projectStorage';
+import { AudioTrack, Effect, MasterChannel, Channel } from '@/lib/interface';
 import { create } from 'zustand';
-export interface AudioTrack {
-    id?: number;
-    name: string;
-    url: string;
-    audioFileId: number;
-    channel: number | undefined;
-    startTime: number;
-}
-
-export interface Channel {
-    name: string;
-    id?: number | undefined;
-    tracks: AudioTrack[];
-    volume: number;
-    muted: boolean;
-    solo: boolean;
-    effects: EffectDto[];
-}
-
-export interface MasterChannel {
-    volume: number;
-    muted: boolean;
-    effects: Effect[];
-}
-
-export interface Effect {
-    id?: number;
-    type: 'eq' | 'compressor' | 'limiter';
-    enabled: boolean;
-    parameters: Record<string, number>;
-}
+import { projectStorageApi } from '@/lib/api/projectStorage';
 
 export const ZOOM_PRESETS = {
     SECONDS_5: { label: '5s', seconds: 5 },
@@ -62,15 +32,16 @@ type AudioStore = {
     selectionEnd: number | null;
     bpm: number;
     quantizeDivision: keyof typeof QUANTIZE_DIVISIONS;
-    setProjectId: (projectId: string) => void;
+    setProjectId: (projectId?: string) => void;
     addChannel: () => void;
-    removeChannel: (channelId: number) => void;
-    addTrack: (channelId: number | undefined, track: Omit<AudioTrack, 'id' | 'channelId'>) => void;
-    removeTrack: (channelId: number, trackId: number) => void;
-    updateTrackPosition: (trackId: number | undefined, channelId: number | undefined, startTime: number) => void;
-    setChannelVolume: (channelId: number, volume: number) => void;
-    toggleChannelMute: (channelId: number) => void;
-    toggleChannelSolo: (channelId: number) => void;
+    removeChannel: (channelId: string) => void;
+    addTrack: (channelId: string, track: Omit<AudioTrack, 'id' | 'channel'>) => void;
+    updateTrack: (channelId: string, updatedTrack: AudioTrack) => void;
+    removeTrack: (channelId: string, trackId: number) => void;
+    updateTrackPosition: (trackId: number | undefined, channelId: string | undefined, startTime: number) => void;
+    setChannelVolume: (channelId: string, volume: number) => void;
+    toggleChannelMute: (channelId: string) => void;
+    toggleChannelSolo: (channelId: string) => void;
     setIsPlaying: (isPlaying: boolean) => void;
     setCurrentTime: (time: number) => void;
     setSelectedTrack: (trackId: number | null) => void;
@@ -88,9 +59,9 @@ type AudioStore = {
     setMasterVolume: (volume: number) => void;
     toggleMasterMute: () => void;
     addMasterEffect: (type: Effect['type']) => void;
-    removeMasterEffect: (effectId: number) => void;
-    updateMasterEffect: (effectId: number, parameters: Record<number, number>) => void;
-    toggleMasterEffect: (effectId: number) => void;
+    removeMasterEffect: (effectId?: string) => void;
+    updateMasterEffect: (effectId?: string, parameters?: Record<string, number>) => void;
+    toggleMasterEffect: (effectId?: string) => void;
 };
 
 const DEFAULT_MASTER_CHANNEL: MasterChannel = {
@@ -121,43 +92,97 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     selectionEnd: null,
     bpm: 120,
     quantizeDivision: "QUARTER",
-    setProjectId: (projectId: string) => set({ projectId }),
+    setProjectId: (projectId?: string) => set({ projectId }),
     addChannel: () => set((state) => ({
         channels: [...state.channels, {
+            id: state.channels?.length ?? 0,
             name: `Channel ${state.channels.length + 1}`,
             tracks: [],
             volume: 1,
             effects: [],
             muted: false,
-            solo: false, // Add required audioFileId property
+            solo: false,
+            position: state.channels.length
         }]
     })),
 
-    removeChannel: (channelId: number) => set((state) => ({
-        channels: state.channels.filter((channel) => channel.id !== channelId),
+    removeChannel: (channelId: string) => set((state) => ({
+        channels: state.channels.filter((channel) => channel.id !== Number(channelId)),
     })),
 
     addTrack: (
-        channelId: number | undefined,
-        track: Omit<AudioTrack, 'id' | 'channelId'>
-    ) => set((state) => ({
-        channels: state.channels.map((channel) =>
-            channel.id === channelId
-                ? {
-                    ...channel,
-                    tracks: [...channel.tracks,
-                    {
-                        ...track,
-                        channel: channelId,
-                    }],
-                }
-                : channel
-        ),
-    })),
+        channelId: string,
+        track: Omit<AudioTrack, 'id' | 'channel'>
+    ) => set((state) => {
+        const updatedChannel = state.channels.find((channel) => channel.id === Number(channelId))
+        if (!updatedChannel)
+        {
+            throw Error('Channel not found')
+        }
+        // Generate a unique ID using timestamp and random number
+        const newId = Date.now() + Math.floor(Math.random() * 1000)
+        const newTrack = {
+            ...track,
+            id: newId
+        }
+        updatedChannel?.tracks?.push(newTrack)
 
-    removeTrack: (channelId: number, trackId: number) => set((state) => ({
+        // Save track to backend if projectId exists
+        if (state.projectId)
+        {
+            projectStorageApi.createTrack(
+                state.projectId,
+                channelId,
+                {
+                    name: track.name,
+                    audioFileId: track.audioFileId,
+                    startTime: track.startTime
+                }
+            ).catch(error => {
+                console.error('Failed to save track:', error);
+            });
+        }
+
+        return state
+    }),
+
+    updateTrack: (channelId: string, updatedTrack: AudioTrack) => set((state) => {
+        const updatedChannel = state.channels.find((channel) => channel.id === Number(channelId))
+        if (!updatedChannel)
+        {
+            throw Error('Channel not found')
+        }
+        const trackIndex = updatedChannel.tracks?.findIndex((track) => track.id === updatedTrack.id)
+        if (trackIndex === -1)
+        {
+            throw Error('Track not found')
+        }
+        updatedChannel.tracks![trackIndex ?? 0] = updatedTrack
+
+        // Save track update to backend
+        if (state.projectId)
+        {
+            projectStorageApi.updateTrack(
+                state.projectId,
+                channelId,
+                updatedTrack.id ?? Math.random() * 1000000,
+                {
+                    name: updatedTrack.name,
+                    audioFileId: updatedTrack.audioFileId,
+                    startTime: updatedTrack.startTime,
+                    position: updatedTrack.position
+                }
+            ).catch(error => {
+                console.error('Failed to save track update:', error);
+            });
+        }
+
+        return state
+    }),
+
+    removeTrack: (channelId: string, trackId: number) => set((state) => ({
         channels: state.channels.map((channel) =>
-            channel.id === channelId
+            channel.id === Number(channelId)
                 ? {
                     ...channel,
                     tracks: channel.tracks.filter((track) => track.id !== trackId),
@@ -166,13 +191,13 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
         ),
     })),
 
-    updateTrackPosition: (trackId: number | undefined, channelId: number | undefined, startTime: number) => {
+    updateTrackPosition: (trackId: number | undefined, channelId: string | undefined, startTime: number) => {
         const state = get();
         const quantizedTime = state.quantizeTime(startTime);
 
         set((state) => ({
             channels: state.channels.map((channel) =>
-                channel.id === channelId
+                channel.id === Number(channelId)
                     ? {
                         ...channel,
                         tracks: channel.tracks.map((track) =>
@@ -188,21 +213,21 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
         get().zoomToFitProject();
     },
 
-    setChannelVolume: (channelId: number, volume: number) => set((state) => ({
+    setChannelVolume: (channelId: string, volume: number) => set((state) => ({
         channels: state.channels.map((channel) =>
-            channel.id === channelId ? { ...channel, volume } : channel
+            channel.id === Number(channelId) ? { ...channel, volume } : channel
         ),
     })),
 
-    toggleChannelMute: (channelId: number) => set((state) => ({
+    toggleChannelMute: (channelId: string) => set((state) => ({
         channels: state.channels.map((channel) =>
-            channel.id === channelId ? { ...channel, muted: !channel.muted } : channel
+            channel.id === Number(channelId) ? { ...channel, muted: !channel.muted } : channel
         ),
     })),
 
-    toggleChannelSolo: (channelId: number) => set((state) => ({
+    toggleChannelSolo: (channelId: string) => set((state) => ({
         channels: state.channels.map((channel) =>
-            channel.id === channelId ? { ...channel, solo: !channel.solo } : channel
+            channel.id === Number(channelId) ? { ...channel, solo: !channel.solo } : channel
         ),
     })),
 
@@ -218,7 +243,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
 
         // Find the latest end time across all tracks
         state.channels.forEach(channel => {
-            channel.tracks.forEach(track => {
+            channel.tracks?.forEach(track => {
                 // Assuming each track is 30 seconds long for now
                 // TODO: Replace with actual track duration when available
                 const trackEndTime = track.startTime + 30;
@@ -318,14 +343,14 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
         },
     })),
 
-    removeMasterEffect: (effectId: number) => set((state) => ({
+    removeMasterEffect: (effectId?: string) => set((state) => ({
         masterChannel: {
             ...state.masterChannel,
             effects: state.masterChannel.effects.filter(effect => effect.id !== effectId),
         },
     })),
 
-    updateMasterEffect: (effectId: number, parameters: Record<string, number>) => set((state) => ({
+    updateMasterEffect: (effectId?: string, parameters?: Record<string, number>) => set((state) => ({
         masterChannel: {
             ...state.masterChannel,
             effects: state.masterChannel.effects.map(effect =>
@@ -336,7 +361,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
         },
     })),
 
-    toggleMasterEffect: (effectId: number) => set((state) => ({
+    toggleMasterEffect: (effectId?: string) => set((state) => ({
         masterChannel: {
             ...state.masterChannel,
             effects: state.masterChannel.effects.map(effect =>

@@ -43,7 +43,10 @@ data class TrackDto(
     val id: Long,
     val name: String,
     val audioFileId: Long?,
-    val startTime: BigDecimal
+    val startTime: BigDecimal,
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val position: Int? = null
 )
 
 data class CreateProjectRequest(
@@ -68,7 +71,7 @@ data class CreateChannelRequest(
     val muted: Boolean = false,
     val solo: Boolean = false,
     val position: Int,
-    val tracks: MutableList<Track>
+    val tracks: List<TrackDto> = emptyList()
 )
 
 data class UpdateChannelRequest(
@@ -76,7 +79,8 @@ data class UpdateChannelRequest(
     val volume: BigDecimal?,
     val muted: Boolean?,
     val solo: Boolean?,
-    val position: Int?
+    val position: Int?,
+    val tracks: List<TrackDto>?
 )
 
 data class CreateEffectRequest(
@@ -96,4 +100,11 @@ data class CreateTrackRequest(
     val name: String,
     val audioFileId: Long?,
     val startTime: BigDecimal
+)
+
+data class UpdateTrackRequest(
+    val name: String?,
+    val audioFileId: Long?,
+    val startTime: BigDecimal?,
+    val position: Int?
 ) 

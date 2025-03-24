@@ -1,10 +1,13 @@
 import axios from 'axios';
+import { AudioTrack } from '../interface';
 
 const API_BASE_URL = 'http://localhost:8081/api'; // Updated to use nginx proxy
 
 export interface AudioFileMetadata {
+    downloadUrl: string;
     id?: number;
     filename: string;
+    position: number;
     contentType: string;
     fileSize: number;
     description?: string;
@@ -13,6 +16,17 @@ export interface AudioFileMetadata {
 }
 
 export const audioStorageApi = {
+    uploadAudioFromProject: async (track: AudioTrack, projectId?: string | null, description?: string, uploadedBy: string = 'user'): Promise<AudioFileMetadata> => {
+        const inMemoryFile = await fetch(track.url!);
+        const blob = await inMemoryFile.blob();
+        const file = new File(
+            [blob],
+            track.name,
+            { type: blob.type }
+        );
+        return await audioStorageApi.uploadAudio(file, description, uploadedBy);
+    },
+
     uploadAudio: async (file: File, description?: string, uploadedBy: string = 'user'): Promise<AudioFileMetadata> => {
         console.log("uploading audio", file)
         const formData = new FormData();
@@ -66,10 +80,10 @@ export const audioStorageApi = {
         return response.data;
     },
 
-    searchAudioFiles: async (fileName: string): Promise<AudioFileMetadata[]> => {
-        console.log("searching audio files", fileName)
+    searchAudioFiles: async (id: string): Promise<AudioFileMetadata[]> => {
+        console.log("searching audio files", id)
         const response = await axios.get<AudioFileMetadata[]>(`${API_BASE_URL}/audio/search`, {
-            params: { fileName },
+            params: { id },
         }).catch(onError);
         if (!response)
         {

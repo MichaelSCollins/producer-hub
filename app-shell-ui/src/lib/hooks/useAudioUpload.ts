@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useAudioStore } from '@/store/audioStore';
+import { audioStorageApi } from '../api/audioStorage';
 
 interface UseAudioUploadProps {
-    channelId?: number;
-    audioFileId: number;
+    channelId: string;
+    audioFileId?: number;
 }
 
 export const useAudioUpload = ({ channelId, audioFileId }: UseAudioUploadProps) => {
@@ -12,6 +13,7 @@ export const useAudioUpload = ({ channelId, audioFileId }: UseAudioUploadProps) 
     const addTrack = useAudioStore((state) => state.addTrack);
 
     const handleFileUpload = useCallback(async (file: File) => {
+        console.log('handleFileUpload', file)
         if (!file.type.startsWith('audio/'))
         {
             throw new Error('Invalid file type. Please upload an audio file.');
@@ -24,32 +26,16 @@ export const useAudioUpload = ({ channelId, audioFileId }: UseAudioUploadProps) 
         {
             // TODO: Replace with actual upload logic to your backend
             // This is a mock implementation
-            const mockUpload = () => new Promise<string>((resolve) => {
-                const interval = setInterval(() => {
-                    setUploadProgress((prev) => {
-                        if (prev >= 100)
-                        {
-                            clearInterval(interval);
-                            return 100;
-                        }
-                        return prev + 10;
-                    });
-                }, 100);
-
-                // Mock URL - replace with actual uploaded file URL from your backend
-                setTimeout(() => {
-                    resolve(URL.createObjectURL(file));
-                }, 1000);
-            });
-
-            const url = await mockUpload();
-
-            addTrack(channelId || -1, {
+            const s3Object = await audioStorageApi.uploadAudio(file, 'Uploaded by user', 'user');
+            console.log('s3Object', s3Object)
+            addTrack(channelId, {
                 name: file.name,
-                url,
-                audioFileId,
+                audioFileId: s3Object.id ?? -1,
+                url: s3Object.downloadUrl,
                 startTime: 0,
-                channel: channelId || -1,
+                position: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             });
 
             setUploadProgress(100);
@@ -61,15 +47,16 @@ export const useAudioUpload = ({ channelId, audioFileId }: UseAudioUploadProps) 
         {
             setIsUploading(false);
         }
-    }, [addTrack, channelId, audioFileId]);
+    }, [channelId, addTrack, audioFileId]);
 
     const handleDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
+        console.log('handleDrop')
         event.preventDefault();
         event.stopPropagation();
 
         const files = Array.from(event.dataTransfer.files);
         const audioFiles = files.filter(file => file.type.startsWith('audio/'));
-
+        console.log('handleDrop', audioFiles)
         if (audioFiles.length === 0)
         {
             throw new Error('No audio files were dropped');
@@ -77,7 +64,7 @@ export const useAudioUpload = ({ channelId, audioFileId }: UseAudioUploadProps) 
 
         // Upload each audio file
         await Promise.all(audioFiles.map(handleFileUpload));
-    }, [handleFileUpload]);
+    }, [channelId, audioFileId]);
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();

@@ -3,7 +3,9 @@ package mike.dev.project_api.controller
 import mike.dev.project_api.dto.*
 import mike.dev.project_api.service.ProjectService
 import jakarta.validation.Valid
+import mike.dev.project_api.model.Channel
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -26,12 +28,16 @@ class ProjectController(
     }
 
     @GetMapping("/{id}")
-    fun getProject(@PathVariable id: Long): ProjectDto {
+    fun getProject(
+        @PathVariable id: Long
+    ): ProjectDto {
         return projectService.getProject(id)
     }
 
     @GetMapping
-    fun getProjectsByUser(@RequestHeader("X-User-Id") userId: String): List<ProjectDto> {
+    fun getProjectsByUser(
+        @RequestHeader("X-User-Id") userId: String
+    ): List<ProjectDto> {
         return projectService.getProjectsByUser(userId)
     }
 
@@ -52,9 +58,9 @@ class ProjectController(
     @PostMapping("/{projectId}/channels")
     fun addChannel(
         @PathVariable projectId: Long,
-        @RequestBody @Valid request: CreateChannelRequest
+        @RequestBody request: Any
     ): ProjectDto {
-        return projectService.addChannel(projectId, request)
+        return projectService.addChannel(projectId, request as CreateChannelRequest)
     }
 
     @PutMapping("/{projectId}/channels/{channelId}")
@@ -62,8 +68,11 @@ class ProjectController(
         @PathVariable projectId: Long,
         @PathVariable channelId: Long,
         @RequestBody @Valid request: UpdateChannelRequest
-    ): ProjectDto {
-        return projectService.updateChannel(projectId, channelId, request)
+    ): ResponseEntity<Channel?> {
+        val updatedChannel = projectService.updateChannel(
+            projectId, channelId, request
+        )
+        return ResponseEntity.ok<Channel>(updatedChannel)
     }
 
     @DeleteMapping("/{projectId}/channels/{channelId}")
@@ -72,5 +81,34 @@ class ProjectController(
         @PathVariable channelId: Long
     ): ProjectDto {
         return projectService.deleteChannel(projectId, channelId)
+    }
+
+    @PostMapping("/{projectId}/channels/{channelId}/tracks")
+    fun createTrack(
+        @PathVariable projectId: Long,
+        @PathVariable channelId: Long,
+        @RequestBody request: CreateTrackRequest
+    ): TrackDto {
+        return projectService.createTrack(projectId, channelId, request)
+    }
+
+    @PutMapping("/{projectId}/channels/{channelId}/tracks/{trackId}")
+    fun updateTrack(
+        @PathVariable projectId: Long,
+        @PathVariable channelId: Long,
+        @PathVariable trackId: Long,
+        @RequestBody request: UpdateTrackRequest
+    ): TrackDto {
+        return projectService.updateTrack(projectId, channelId, trackId, request)
+    }
+
+    @DeleteMapping("/{projectId}/channels/{channelId}/tracks/{trackId}")
+    fun deleteTrack(
+        @PathVariable projectId: Long,
+        @PathVariable channelId: Long,
+        @PathVariable trackId: Long
+    ): ResponseEntity<Unit> {
+        projectService.deleteTrack(projectId, channelId, trackId)
+        return ResponseEntity.ok().build()
     }
 } 

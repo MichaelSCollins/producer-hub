@@ -22,19 +22,21 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    
+
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    
+
     // Database
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
-    
-    // Testing
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    // Testcontainers and Testing
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.mockito", module = "mockito-core")
+    }
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("io.mockk:mockk:1.13.9")
@@ -42,11 +44,11 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs += "-Xjsr305=strict"
-        jvmTarget = "17"
+        freeCompilerArgs = listOf("-Xjsr305=strict") // Ensure strict null safety
+        jvmTarget = "17" // Use JVM 17
     }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-} 
+}
