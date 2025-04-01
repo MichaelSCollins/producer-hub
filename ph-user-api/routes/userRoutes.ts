@@ -1,0 +1,18 @@
+import express from 'express';
+import * as userController from '../controllers/userController';
+
+const router = express.Router();
+
+// Register a new user
+router.post('/register', userController.register);
+
+// Login a user
+router.post('/login', userController.login);
+
+// Update user settings
+router.put('/settings', userController.updateSettings);
+
+// Search for users
+router.get('/search', userController.searchUsers);
+
+export default router;
