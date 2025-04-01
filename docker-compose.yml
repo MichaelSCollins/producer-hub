@@ -1,48 +1,4 @@
-version: '3.8'
-
 services:
-  # app-shell-ui:
-  #   build:
-  #     context: ./app-shell-ui
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3003:3000"
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   depends_on:
-  #     ph-audio-storage-api:
-  #       condition: service_started
-  # config-server:
-  #   image: springcloud/configserver
-  #   ports:
-  #     - "8888:8888"
-  #   environment:
-  #     - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/your-config-repo
-  #     - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-
-  # eureka-server:
-  #   image: springcloud/eureka
-  #   ports:
-  #     - "8761:8761"
-  #   depends_on:
-  #     config-server:
-  #       condition: service_healthy
-  #   environment:
-  #     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-
   postgres:
     image: postgres:15-alpine
     ports:
@@ -58,7 +14,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   localstack:
     image: localstack/localstack
     ports:
@@ -71,7 +26,23 @@ services:
     volumes:
       - localstack_data:/tmp/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
-
+  ph-user-api:
+    build:
+      context: ./ph-user-api
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - AWS_ACCESS_KEY=test
+      - AWS_SECRET_KEY=test
+      - AWS_REGION=us-east-2
+      - AWS_S3_BUCKET=mikedevportfolio
+      - STORAGE_TYPE=s3
+    volumes:
+      - user:/user
+    depends_on:
+      postgres:
+        condition: service_healthy
   ph-audio-storage-api:
     build:
       context: ./ph-audio-storage-api
@@ -79,8 +50,6 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
@@ -94,40 +63,80 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # localstack:
-      #   condition: service_started
 
   ph-project-storage-api:
-    image: ph-project-storage-api:latest
+    build:
+      context: ./node-project-storage-api
+      dockerfile: Dockerfile
     ports:
-      - "8082:8081"
+      - "8082:8082"
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
       - AWS_ACCESS_KEY=test
       - AWS_SECRET_KEY=test
       - AWS_REGION=us-east-2
       - AWS_S3_BUCKET=mikedevportfolio
       - STORAGE_TYPE=s3
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_FLYWAY_ENABLED=false
+      - NODE_ENV=production
     volumes:
       - project_storage:/project-storage
     depends_on:
       postgres:
         condition: service_healthy
-      # config-server:
-      #   condition: service_healthy
-      # eureka-server:
-      #   condition: service_healthy
-      # localstack:
-      #   condition: service_started
+    # app-shell-ui:
+    #   build:
+    #     context: ./app-shell-ui
+    #     dockerfile: Dockerfile
+    #   ports:
+    #     - "3003:3000"
+    #   healthcheck:
+    #     test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
+    #     interval: 10s
+    #     timeout: 5s
+    #     retries: 5
+    #   depends_on:
+    #     ph-audio-storage-api:
+    #       condition: service_started
+    # config-server:
+    #   image: springcloud/configserver
+    #   ports:
+    #     - "8888:8888"
+    #   environment:
+    #     - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/your-config-repo
+    #     - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
+    #   healthcheck:
+    #     test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+    #     interval: 30s
+    #     timeout: 10s
+    #     retries: 5
+
+    # eureka-server:
+    #   image: springcloud/eureka
+    #   ports:
+    #     - "8761:8761"
+    #   depends_on:
+    #     config-server:
+    #       condition: service_healthy
+    #   environment:
+    #     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    #   healthcheck:
+    #     test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+    #     interval: 30s
+    #     timeout: 10s
+    #     retries: 5
 
 volumes:
   postgres_data:
   localstack_data:
   audio_storage:
+  user: # config-repo:
+
+  # app-shell-ui:
+  # eureka-server:
+  # config-server:
+  ph-audio-storage-api:
   project_storage:
