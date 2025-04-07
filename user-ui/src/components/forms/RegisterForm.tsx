@@ -1,12 +1,10 @@
 "use client"
 import { CgSpinnerTwo } from "react-icons/cg";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable react-hooks/rules-of-hooks */
-import React, { useActionState } from 'react'
+import React, { useActionState, useRef } from 'react'
 import registerAction from "@/actions/register";
+import { UserFormState, UserInputControl } from "@/lib/interfaces";
 
-const formInputData = [{
+const formInputData: UserInputControl[] = [{
     name: 'username',
     placeholder: '',
     type: 'username',
@@ -31,32 +29,26 @@ const formInputData = [{
     label: 'Confirm Password:'
 }]
 
-export interface InputError {
-    inputName: string,
-    message: string
-}
-
-export interface UserFormState {
-    message?: string | undefined,
-    error?: string | undefined,
-    errors?: InputError[],
-    loading?: boolean
-}
 
 const RegisterForm: React.FC = () => {
+    const formRef = useRef<HTMLFormElement>(null)
     const initialState: UserFormState = {
         message: undefined,
-        errors: [],
+        errors: {},
         error: undefined,
         loading: false
     }
-    const [registrationState, formAction] = useActionState(
-        registerAction,
+    const [registrationState, formAction] = useActionState<UserFormState>(
+        () => {
+            const formData = new FormData(formRef.current!)
+            return registerAction(formData);
+        },
         initialState
     )
     return (
         <form
             action={formAction}
+            ref={formRef}
             onSubmit={() => {
                 registrationState.message = ""
                 registrationState.error = undefined
@@ -73,7 +65,10 @@ const RegisterForm: React.FC = () => {
             {
                 !registrationState.loading
                     ? formInputData.map(formInput => {
-                        return <UserFormInput key={formInput.name} {...formInput} error={registrationState.errors[formInput.name]} />
+                        return <UserFormInput
+                            key={formInput.name}
+                            {...formInput}
+                            error={registrationState.errors[formInput.name]?.message} />
                     })
                     : <div className="flex justify-center py-8 items-center w-full">
                         <CgSpinnerTwo className="animate-spin text-3xl" />
@@ -100,7 +95,7 @@ const RegisterForm: React.FC = () => {
 
 interface UserFormInputProps {
     name: string,
-    placeholder: string,
+    placeholder?: string,
     label: string,
     type: string,
     error?: string | undefined

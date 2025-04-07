@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AudioTrack } from '@/types/audio';
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8081/api'; // Updated to use nginx proxy
+const USER_BASE_URL =
+    process.env.NEXT_PUBLIC_USER_API_URL
+    ?? 'http://localhost:7777/api/users/user'; // Updated to use nginx proxy
+const API_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_API_URL; // Updated to use nginx proxy
 
 export interface AudioFileMetadata {
     downloadUrl: string;
@@ -17,6 +19,10 @@ export interface AudioFileMetadata {
 }
 
 export const audioStorageApi = {
+    getUser: async () => {
+        const response = await fetch(USER_BASE_URL)
+        return response.json()
+    },
     uploadAudioFromProject: async (track: any, projectId?: string | null, description?: string, uploadedBy: string = 'user'): Promise<AudioFileMetadata> => {
         const inMemoryFile = await fetch(track.url!);
         const blob = await inMemoryFile.blob();
@@ -38,7 +44,7 @@ export const audioStorageApi = {
         }
         formData.append('uploadedBy', uploadedBy);
 
-        const response = await axios.post<AudioFileMetadata>(`${API_BASE_URL}/audio/upload`, formData, {
+        const response = await axios.post<AudioFileMetadata>(`${API_BASE_URL}/upload`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -52,7 +58,7 @@ export const audioStorageApi = {
 
     downloadAudio: async (id: number): Promise<Blob> => {
         console.log("downloading audio", id)
-        const response = await axios.get(`${API_BASE_URL}/audio/${id}/download`, {
+        const response = await axios.get(`${API_BASE_URL}/${id}/download`, {
             responseType: 'blob',
         }).catch(onError);
         if (!response)
@@ -63,7 +69,7 @@ export const audioStorageApi = {
     },
 
     deleteAudio: async (id: string): Promise<void> => {
-        await axios.delete(`${API_BASE_URL}/audio/${id}`)
+        await axios.delete(`${API_BASE_URL}/${id}`)
             .catch(onError);
     },
 
@@ -71,26 +77,13 @@ export const audioStorageApi = {
         console.log("getting all audio files")
         const response = await axios
             .get<AudioTrack[]>(
-                `${API_BASE_URL}/audio`
-            )
-            .catch(onError);
+                `${API_BASE_URL}`
+            ).catch(onError);
         if (!response)
         {
             throw new Error('Failed to fetch audio files');
         }
-        return response.data;
-    },
-
-    searchAudioFiles: async (id: string): Promise<AudioFileMetadata[]> => {
-        console.log("searching audio files", id)
-        const response = await axios.get<AudioFileMetadata[]>(`${API_BASE_URL}/audio/search`, {
-            params: { id },
-        }).catch(onError);
-        if (!response)
-        {
-            throw new Error('Failed to search audio files');
-        }
-        return response.data;
+        return response?.data;
     },
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

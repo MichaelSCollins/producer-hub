@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface AudioFileRepository : JpaRepository<AudioFile, Long>
+interface AudioFileRepository : JpaRepository<AudioFile, Long> {
+    fun findByUserId(userId: Long): List<AudioFile>
+}

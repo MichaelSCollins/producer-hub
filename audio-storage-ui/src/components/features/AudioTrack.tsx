@@ -9,7 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useAudioStore } from '@/store/audioStore';
 import { AudioTrack } from '@/types/audio';
 import AudioControls from './AudioControls';
-import WaveSurferBuilder from '@/lib/builder/WaveSurfFactory';
+import WaveSurferBuilder from '@/lib/builder/WaveSurfBuilder';
 
 interface AudioTrackProps {
     track: AudioTrack;

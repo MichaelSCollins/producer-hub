@@ -13,7 +13,7 @@ const AppForm = ({
     }) => {
     const initialState: UserFormState = {
         message: undefined,
-        errors: [],
+        errors: {},
         error: undefined,
         loading: false
     }
@@ -40,7 +40,9 @@ const AppForm = ({
             {
                 !formState.loading
                     ? inputs.map(formInput => {
-                        return <UserFormInput key={formInput.name} {...formInput} error={formState?.errors![formInput?.name]} />
+                        return <UserFormInput key={formInput.name}
+                            {...formInput as Omit<UserFormInputProps, 'error' | 'errors'>}
+                            error={formState?.errors[formInput.name]?.message} />
                     })
                     : <div className="flex justify-center py-8 items-center w-full">
                         <CgSpinnerTwo className="animate-spin text-3xl" />

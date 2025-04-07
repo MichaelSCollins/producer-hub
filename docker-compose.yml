@@ -26,9 +26,9 @@ services:
     volumes:
       - localstack_data:/tmp/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
-  ph-user-api:
+  user-api:
     build:
-      context: ./ph-user-api
+      context: ./user-api
       dockerfile: Dockerfile
     ports:
       - "8083:8083"
@@ -43,9 +43,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-  ph-audio-storage-api:
+  audio-storage-api:
     build:
-      context: ./ph-audio-storage-api
+      context: ./audio-storage-api
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
@@ -64,43 +64,49 @@ services:
       postgres:
         condition: service_healthy
 
-  ph-project-storage-api:
+  # project-storage-api:
+  #   build:
+  #     context: ./node-project-storage-api
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8082:8082"
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - DB_PORT=5432
+  #     - DB_USERNAME=postgres
+  #     - DB_PASSWORD=postgres
+  #     - DB_NAME=postgres
+  #     - AWS_ACCESS_KEY=test
+  #     - AWS_SECRET_KEY=test
+  #     - AWS_REGION=us-east-2
+  #     - AWS_S3_BUCKET=mikedevportfolio
+  #     - STORAGE_TYPE=s3
+  #     - NODE_ENV=production
+  #   volumes:
+  #     - project_storage:/project-storage
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  audio-storage-ui:
     build:
-      context: ./node-project-storage-api
+      context: ./audio-storage-ui
       dockerfile: Dockerfile
     ports:
-      - "8082:8082"
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=postgres
-      - AWS_ACCESS_KEY=test
-      - AWS_SECRET_KEY=test
-      - AWS_REGION=us-east-2
-      - AWS_S3_BUCKET=mikedevportfolio
-      - STORAGE_TYPE=s3
-      - NODE_ENV=production
-    volumes:
-      - project_storage:/project-storage
+      - "3003:3000"
+  user-ui:
+    build:
+      context: ./user-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      postgres:
-        condition: service_healthy
-    # app-shell-ui:
-    #   build:
-    #     context: ./app-shell-ui
-    #     dockerfile: Dockerfile
-    #   ports:
-    #     - "3003:3000"
-    #   healthcheck:
-    #     test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
-    #     interval: 10s
-    #     timeout: 5s
-    #     retries: 5
-    #   depends_on:
-    #     ph-audio-storage-api:
-    #       condition: service_started
+      user-api:
+        condition: service_started
     # config-server:
     #   image: springcloud/configserver
     #   ports:
@@ -138,5 +144,8 @@ volumes:
   # app-shell-ui:
   # eureka-server:
   # config-server:
-  ph-audio-storage-api:
+  audio-storage-api:
+  user-api:
+  audio-storage-ui:
+  user-ui:
   project_storage:

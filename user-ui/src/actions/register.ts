@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
-import { InputError, UserFormState } from "@/components/forms/RegisterForm";
+import { UserFormState } from "@/lib/interfaces";
 import api from "@/lib/api/api";
 const processedFormData: any = {}
 let errors: any = {}
@@ -21,7 +21,10 @@ const processFormData = (
     inputNames.forEach((name) => {
         if (!processFormValue(name, formData))
         {
-            errors[name] = '' + name + ' is required.'
+            errors[name] = {
+                name,
+                message: '' + name + ' is required.'
+            }
             hasFailed = true;
         }
     })
@@ -34,7 +37,13 @@ const processFormData = (
     }
 }
 
-const registerAction = async (state: UserFormState, formData: FormData) => {
+const registerAction = async (formData: FormData) => {
+    const state: UserFormState = {
+        message: undefined,
+        errors: {},
+        error: undefined,
+        loading: false
+    }
     errors = {};
     hasFailed = false;
     processFormData(

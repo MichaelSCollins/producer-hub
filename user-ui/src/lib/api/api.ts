@@ -1,38 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CreateAccountRequest, LoginRequest } from "@/lib/interfaces";
-import urls from "./api.config"
+import { CreateAccountRequest, LoginRequest } from "../../../../user-ui/src/lib/interfaces";
+import endpoints from "./api.config"
 const api = {
     headers: {
         // "Authorization": `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "application/json",
+
         // "X-User-Id": localStorage.getItem("userId"),
     },
     register: async (
         body: CreateAccountRequest
     ) => {
-        return api.post<CreateAccountRequest>(
-            urls.register,
+        console.log("Registering user", endpoints.register, body)
+        return await api.post<CreateAccountRequest>(
+            endpoints.register,
             body
         ).catch((e) => {
-            console.error(e)
+            console.error(e.message)
             throw e;
         })
     },
     login: async (
         body: LoginRequest
     ) => {
-        return api.post<LoginRequest>(
-            urls.login,
+        return await api.post<LoginRequest>(
+            endpoints.login,
             body
+        );
+    },
+    getCurrentUser: async (
+    ) => {
+        return await api.get(
+            endpoints.user,
         );
     },
     post: async <T>(url: string, body: T) => {
         const response = await fetch(url, {
             method: "POST",
             headers: api.headers,
+            credentials: 'include', // 🔥 this sends and receives cookies
             body: JSON.stringify(body),
         }).catch(err => {
-            console.error('api call failed', err);
+            console.error('api call failed', err.message);
             throw err;
         });
         if (!response.ok)
@@ -47,6 +56,7 @@ const api = {
     >) => {
         const response = await fetch(url, {
             method: "PUT",
+            credentials: 'include', // 🔥 this sends and receives cookies
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });

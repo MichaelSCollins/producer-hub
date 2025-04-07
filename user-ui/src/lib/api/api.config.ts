@@ -1,9 +1,8 @@
-export default {
-    "register": "http://localhost:8083/api/users/register",
-    "login": "http://localhost:8083/api/users/login",
-    "logout": "http://localhost:8083/api/users/logout",
-    "upload": "http://localhost:8083/api/users/{id}/upload",
-    "delete": "http://localhost:8083/api/users/",
-    "edit": "http://localhost:8083/api/users/",
-    "profile": "http://localhost:8083/api/users/"
+const endpoints = {
+  "register": "http://localhost:5000/api/users/register",
+  "login": "http://localhost:5000/api/login",
+  "logout": "http://localhost:4444/auth/logout",
+  "user": "http://localhost:4444/auth/user/",
 }
+
+export default endpoints;

@@ -5,13 +5,13 @@ import cors from 'cors';
 import { MongoDB } from './lib/db/mongo';
 
 const app = express();
-const PORT = 8083;
+const PORT = 7777;
 
 // Middleware
 app.use(bodyParser.json());
 // Configure CORS
 app.use(cors({
-    origin: 'http://localhost:3001', // Replace with the allowed origin(s)
+    origin: 'http://localhost:5000', // Replace with the allowed origin(s)
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
     credentials: true, // Allow cookies to be sent
 }));

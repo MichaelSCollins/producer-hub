@@ -2,7 +2,7 @@
 
 class UIJob {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    jobFunction: (event: any) => void = () => {
+    setTask: (task: any) => void = () => {
     }
     onBefore = () => {
     }
@@ -32,14 +32,14 @@ class UIJob {
         return this;
     }
     setJobFunction = (func: any) => {
-        this.jobFunction = func;
+        this.setTask = func;
         return this;
     }
     execute = async (e: any) => {
         try
         {
             this.onBefore();
-            const response = await this.jobFunction(e);
+            const response = await this.setTask(e);
             this.onSuccess(response);
         } catch (err: unknown)
         {

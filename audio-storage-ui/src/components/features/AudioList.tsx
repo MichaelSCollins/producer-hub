@@ -12,6 +12,7 @@ const AudioCriteriaList = ({ tracks }: { tracks: AudioTrack[] }) => {
     useEffect(() => {
         // Fetch all audio files from the API and set the state
         audioStorageApi.getAllAudioFiles().then((tracks) => {
+            console.log("Fetched tracks", tracks)
             setAudioTracks(tracks);
         }).catch((error) => {
             console.error('Failed to fetch audio files:', error);
@@ -19,9 +20,9 @@ const AudioCriteriaList = ({ tracks }: { tracks: AudioTrack[] }) => {
     }, []);
 
 
-    const filteredTracks = audioTracks.filter(track =>
+    const filteredTracks = audioTracks?.filter(track =>
         track.filename?.toLowerCase().includes(searchQuery?.toLowerCase())
-    );
+    ) || [];
     console.log({ searchQuery, filteredTracks, audioTracks })
     return (
         <div>

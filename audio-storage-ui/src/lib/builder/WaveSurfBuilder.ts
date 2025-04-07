@@ -9,10 +9,10 @@ class WaveSurferBuilder {
         // This is useful for creating a new instance of the builder when needed
         return WaveSurferBuilder.instance;
     }
+    el: string | HTMLElement | null = null; // The container element for WaveSurfer
     audioUrl: string | null = null;
     wavesurfer: WaveSurfer | null = null;
     trackId?: string;
-    el: string | HTMLElement | null = null; // The container element for WaveSurfer
     pixelsPerSecond?: number | undefined;
     trackLoaded: () => void = () => { };
     onTrackLoaded(callback: () => void) {

@@ -35,7 +35,6 @@ class APIJob<T> {
         this.res.status(500).json({
             error: err.message
         });
-
     success: (data: T) => void = (data: T) =>
         this.res.status(200).json(data);
 
@@ -59,23 +58,12 @@ class APIJob<T> {
         this.task = callback
         return this
     }
-    async execute(req: Request, res: Response): Promise<void> {
+    async execute(req: Request, res: Response): Promise<any> {
         // Perform API job
         console.log('API job executed');
-        this.task(req, res)
-            .then((data) => {
-                console.log(
-                    'API job completed successfully'
-                );
-                this.success(data);
-            })
-            .catch((err) => {
-                console.error(
-                    'API job failed',
-                    err
-                );
-                this.error(err);
-            })
+        return await this.task(req, res)
+            .then(this.success)
+            .catch(this.error)
     }
 }
 
@@ -98,11 +86,11 @@ class AuthAPIJob<T> extends APIJob<T> {
         try
         {
             super.execute(req, res)
-        } catch (err)
+        } catch (err: any)
         {
             console.error(
                 'API job encountered an error:',
-                err
+                err.message
             );
             this.error(err);
         }

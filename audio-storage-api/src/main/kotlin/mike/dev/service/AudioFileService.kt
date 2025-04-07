@@ -85,8 +85,14 @@ class AudioFileService(
         }
     }
 
-    fun listAll(): List<AudioFileResponse> {
-        return audioFileRepository.findAll().map { createAudioFileResponse(it) }
+    fun listAll(userId: Long? = null): List<AudioFileResponse> {
+        return if(userId == null)
+            audioFileRepository.findAll().map {
+                createAudioFileResponse(it)
+        } else {
+            audioFileRepository.findByUserId(userId).map {
+                createAudioFileResponse(it)
+            }}
     }
 
     private fun store(file: MultipartFile, metadata: Map<String, Any>, forceLocal: Boolean): AudioFileResponse {

@@ -68,9 +68,11 @@ class AudioFileController(private val audioFileService: AudioFileService) {
         return ResponseEntity.ok(metadata)
     }
 
-    @GetMapping
-    fun listFiles(): ResponseEntity<List<AudioFileResponse>> {
-        val files = audioFileService.listAll()
+    @GetMapping("/{userId}")
+    fun listFiles(
+        @PathVariable userId: Long
+    ): ResponseEntity<List<AudioFileResponse>> {
+        val files = audioFileService.listAll(userId)
         return ResponseEntity.ok(files)
     }
 

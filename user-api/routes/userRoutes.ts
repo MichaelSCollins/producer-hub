@@ -13,6 +13,12 @@ router.post('/login', userController.login);
 router.put('/settings', userController.updateSettings);
 
 // Search for users
+router.get('/user', userController.getUser);
+
+// Search for users
 router.get('/search', userController.searchUsers);
+
+// Search for users
+router.get('/healthcheck', userController.searchUsers);
 
 export default router;

@@ -15,7 +15,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             if (!username || !password)
             {
                 res.status(400).json({ message: 'Username and password are required' });
-                return;
+                throw "Invalid: " + JSON.stringify({ username, password })
             }
             const user = await UserService.registerUser(username, password);
             res.status(201).json({ message: 'User registered successfully', user });
@@ -60,6 +60,17 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
                 return;
             }
             res.status(200).json({ message: 'Settings updated successfully', user });
+        })
+        .execute(req, res);
+};
+
+export const getUser = async (req: Request, res: Response): Promise<void> => {
+    console.log("getUser")
+    return await processor.setRequest(req)
+        .setResponse(res)
+        .setTask(async () => {
+            const user = await UserService.getUser(req);
+            res.status(200).json({ user });
         })
         .execute(req, res);
 };
