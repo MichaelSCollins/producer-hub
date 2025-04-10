@@ -1,6 +1,6 @@
 import express from 'express';
-import { healthCheck } from './middleware/healthcheck';
-import AppInitializer from './facade/AppInitializer';
+import { healthCheck } from './routes/healthcheck';
+import AppInitializer from './lib/facade/AppInitializer';
 
 const app = express();
 const PORT = 5000; // Port for the API Gateway

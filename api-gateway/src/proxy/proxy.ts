@@ -1,5 +1,5 @@
 import { Express } from "express";
-import ProxyFactory from "../factory/ProxyFactory";
+import ProxyFactory from "../lib/factory/ProxyFactory";
 import { routes } from "./routes";
 
 export const useProxies = (app: Express) => {

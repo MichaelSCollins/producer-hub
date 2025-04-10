@@ -1,4 +1,74 @@
 services:
+  api-gateway:
+    image: node:18-alpine
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - AWS_ACCESS_KEY=test
+      - AWS_SECRET_KEY=test
+      - AWS_REGION=us-east-2
+      - AWS_S3_BUCKET=mikedevportfolio
+      - STORAGE_TYPE=s3
+    volumes:
+      - api_gateway:/api_gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-api:
+        condition: service_started
+      # localstack:
+  audio-storage-api:
+    build:
+      context: ./audio-storage-api
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - AWS_ACCESS_KEY=test
+      - AWS_SECRET_KEY=test
+      - AWS_REGION=us-east-2
+      - AWS_S3_BUCKET=mikedevportfolio
+      - STORAGE_TYPE=s3
+    volumes:
+      - audio_storage:/audio_storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # localstack:
+      #   condition: service_healthy
+
+      # audio-storage-ui:
+      #   build:
+      #     context: ./audio-storage-ui
+      #     dockerfile: Dockerfile
+      #   ports:
+      #     - "3003:3000"
+  user-api:
+    build:
+      context: ./user-api
+      dockerfile: Dockerfile
+    ports:
+      - "7777:7777"
+    environment:
+      - AWS_ACCESS_KEY=test
+      - AWS_SECRET_KEY=test
+      - AWS_REGION=us-east-2
+      - AWS_S3_BUCKET=mikedevportfolio
+      - STORAGE_TYPE=s3
+    volumes:
+      - user:/user
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres:15-alpine
     ports:
@@ -26,126 +96,27 @@ services:
     volumes:
       - localstack_data:/tmp/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
-  user-api:
-    build:
-      context: ./user-api
-      dockerfile: Dockerfile
-    ports:
-      - "8083:8083"
-    environment:
-      - AWS_ACCESS_KEY=test
-      - AWS_SECRET_KEY=test
-      - AWS_REGION=us-east-2
-      - AWS_S3_BUCKET=mikedevportfolio
-      - STORAGE_TYPE=s3
-    volumes:
-      - user:/user
-    depends_on:
-      postgres:
-        condition: service_healthy
-  audio-storage-api:
-    build:
-      context: ./audio-storage-api
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - AWS_ACCESS_KEY=test
-      - AWS_SECRET_KEY=test
-      - AWS_REGION=us-east-2
-      - AWS_S3_BUCKET=mikedevportfolio
-      - STORAGE_TYPE=s3
-    volumes:
-      - audio_storage:/audio-storage
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  # project-storage-api:
-  #   build:
-  #     context: ./node-project-storage-api
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8082:8082"
-  #   environment:
-  #     - DB_HOST=postgres
-  #     - DB_PORT=5432
-  #     - DB_USERNAME=postgres
-  #     - DB_PASSWORD=postgres
-  #     - DB_NAME=postgres
-  #     - AWS_ACCESS_KEY=test
-  #     - AWS_SECRET_KEY=test
-  #     - AWS_REGION=us-east-2
-  #     - AWS_S3_BUCKET=mikedevportfolio
-  #     - STORAGE_TYPE=s3
-  #     - NODE_ENV=production
-  #   volumes:
-  #     - project_storage:/project-storage
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  audio-storage-ui:
-    build:
-      context: ./audio-storage-ui
-      dockerfile: Dockerfile
-    ports:
-      - "3003:3000"
-  user-ui:
-    build:
-      context: ./user-ui
-      dockerfile: Dockerfile
-    ports:
-      - "3004:3000"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3003" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      user-api:
-        condition: service_started
-    # config-server:
-    #   image: springcloud/configserver
-    #   ports:
-    #     - "8888:8888"
-    #   environment:
-    #     - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/your-config-repo
-    #     - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
-    #   healthcheck:
-    #     test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
-    #     interval: 30s
-    #     timeout: 10s
-    #     retries: 5
-
-    # eureka-server:
-    #   image: springcloud/eureka
-    #   ports:
-    #     - "8761:8761"
-    #   depends_on:
-    #     config-server:
-    #       condition: service_healthy
-    #   environment:
-    #     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    #   healthcheck:
-    #     test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-    #     interval: 30s
-    #     timeout: 10s
-    #     retries: 5
+      # config-server:
+      # eureka-server:
+      #   image: springcloud/eureka
+      #   ports:
+      #     - "8761:8761"
+      #   depends_on:
+      #     config-server:
+      #       condition: service_healthy
+      #   environment:
+      #     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      #   healthcheck:
+      #     test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      #     interval: 30s
+      #     timeout: 10s
+      #     retries: 5
 
 volumes:
+  api_gateway:
+  audio_storage:
+  user:
   postgres_data:
   localstack_data:
-  audio_storage:
-  user: # config-repo:
-
-  # app-shell-ui:
-  # eureka-server:
-  # config-server:
-  audio-storage-api:
-  user-api:
-  audio-storage-ui:
-  user-ui:
-  project_storage:
+    # config_server:
+    # eureka_server:

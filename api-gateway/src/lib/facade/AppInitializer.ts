@@ -1,9 +1,9 @@
 import { Express } from 'express';
-import useMiddleware from '../middleware/init';
-import useRouter from '../routes/router';
-import useCors from '../middleware/cors';
-import useHealthCheckRoute, { healthCheck } from '../middleware/healthcheck';
-import useProxies from '../proxy/proxy';
+import useMiddleware from '../../middleware/use-middleware';
+import useRouter from '../../routes/router';
+import useCors from '../../middleware/cors';
+import useHealthCheckRoute, { healthCheck } from '../../routes/healthcheck';
+import useProxies from '../../proxy/proxy';
 class ApiGatewayInitializer {
     static instance: ApiGatewayInitializer; // Singleton instance
     static getInstance(app: Express): ApiGatewayInitializer {

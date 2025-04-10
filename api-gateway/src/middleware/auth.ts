@@ -8,12 +8,6 @@ const USER_API = 'http://localhost:7777/api/users';
 
 // export const loginHandler;
 
-export const logoutHandler = (_req: Request, res: Response) => {
-    res.clearCookie('jwt');
-    res.clearCookie('refreshToken');
-    res.status(200).json({ success: true });
-};
-
 export const refreshTokenHandler = (req: Request, res: Response) => {
     const token = req.cookies.refreshToken;
     if (!token) return res.status(401).json({ error: 'Missing refresh token' });
