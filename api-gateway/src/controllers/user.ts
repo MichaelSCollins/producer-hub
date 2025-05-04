@@ -33,9 +33,15 @@ class UserController {
             });
 
             res.status(200).json({ success: true });
-        } catch (err: any)
+        } catch (err: (unknown | Error))
         {
-            console.error('Login failed', err.message);
+            if (err instanceof Error)
+            {
+                console.error('Login failed', err.message);
+            } else
+            {
+                console.error('Login failed', err);
+            }
             res.status(401).json({ error: 'Login failed' });
         }
     }

@@ -24,11 +24,11 @@ class ProxyFactory {
             onProxyReq: (proxyReq, req) => {
                 console.log(`[ProxyReq] ${req.method} ${req.originalUrl} -> ${proxyReq.method} ${proxyReq.path}`);
             },
-            onProxyRes: (proxyRes, req, res) => {
+            onProxyRes: (proxyRes, req) => {
                 console.log(`[ProxyRes] ${req.method} ${req.originalUrl} -> ${proxyRes.statusCode}`);
             },
             onError: (err, req, res) => {
-                console.error(`[ProxyError] ${err.message}`);
+                console.error(`[ProxyError] ${err.message}`, req);
                 res.status(500).json({ error: "Proxy error", details: err.message });
             },
             pathRewrite: undefined,

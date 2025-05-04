@@ -1,10 +1,10 @@
-import { Express } from 'express';
-
-const routeHealthCheck = (app: Express) => {
-    // Healthcheck route
-    app.get('/healthcheck', (req, res) => {
-        res.status(200).json({ status: 'OK' });
-    });
+class HealthCheckRouter {
+    static routeHealthCheck = (app) => {
+        // Healthcheck route
+        app.get('/healthcheck', (req, res) => {
+            res.status(200).json({ status: 'OK' });
+        });
+    }
 }
 
 export const healthCheck = () => {
@@ -21,4 +21,4 @@ export const healthCheck = () => {
         })
 }
 
-export default routeHealthCheck;
+export default HealthCheckRouter;

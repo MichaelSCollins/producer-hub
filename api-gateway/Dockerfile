@@ -1,21 +1,15 @@
-FROM node:18-alpine
+FROM node:23-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
+COPY ./tsconfig.json ./
 COPY . .
-
-# Build the application
-# RUN npm run build
-
+# Install dependencies
+RUN npm i
 # Expose port
 EXPOSE 5000
 
 # Start the applicationw
-CMD ["npm", "start"] 
+CMD ["npm", "run", "start"] 

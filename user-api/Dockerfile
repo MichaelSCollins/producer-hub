@@ -1,7 +1,5 @@
 FROM node:18-alpine
 
-WORKDIR /app
-
 # Copy package files
 COPY package*.json ./
 
@@ -18,4 +16,4 @@ COPY . .
 EXPOSE 7777
 
 # Start the applicationw
-CMD ["npm", "start"] 
+CMD ["npm", "run", "start"] 

@@ -1,6 +1,26 @@
 services:
+  # app-explorer-ui:
+  #   build:
+  #     context: ./app-explorer-ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "1337:3000"
+  #   # environment:
+  #   #   - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+  #   #   - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+  #   #   - FRONTEND_CANCEL_URL=http://localhost:3000/cancel                                                                                                                                                   ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc  depends_on:
+  #   depends_on:
+  #     # postgres:
+  #     #   condition: service_healthy
+  #     api-gateway:
+  #       condition: service_started
+  #     audio-storage-ui:
+  #       condition: service_started
+  #     subscription-ui:
+  #       condition: service_started
+  #     user-ui:
+  #       condition: service_started
   api-gateway:
-    image: node:18-alpine
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
@@ -18,11 +38,14 @@ services:
     volumes:
       - api_gateway:/api_gateway
     depends_on:
-      postgres:
-        condition: service_healthy
       user-api:
         condition: service_started
-      # localstack:
+      subscription-api:
+        condition: service_started
+      audio-storage-api:
+        condition: service_started
+      # postgres:
+      #   condition: service_healthy
   audio-storage-api:
     build:
       context: ./audio-storage-api
@@ -43,15 +66,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # localstack:
-      #   condition: service_healthy
+  # localstack:
+  #   condition: service_healthy
 
-      # audio-storage-ui:
-      #   build:
-      #     context: ./audio-storage-ui
-      #     dockerfile: Dockerfile
-      #   ports:
-      #     - "3003:3000"
   user-api:
     build:
       context: ./user-api
@@ -66,6 +83,20 @@ services:
       - STORAGE_TYPE=s3
     volumes:
       - user:/user
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  subscription-api:
+    build:
+      context: ./subscription-api
+      dockerfile: Dockerfile
+    ports:
+      - "4444:4444"
+    environment:
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+      - FRONTEND_CANCEL_URL=http://localhost:3000/cancel
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,37 +115,53 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  localstack:
-    image: localstack/localstack
-    ports:
-      - "4566:4566"
-    environment:
-      - SERVICES=s3
-      - DEFAULT_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
-    volumes:
-      - localstack_data:/tmp/localstack
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      # config-server:
-      # eureka-server:
-      #   image: springcloud/eureka
-      #   ports:
-      #     - "8761:8761"
-      #   depends_on:
-      #     config-server:
-      #       condition: service_healthy
-      #   environment:
-      #     - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      #   healthcheck:
-      #     test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-      #     interval: 30s
-      #     timeout: 10s
-      #     retries: 5
+      # localstack:  
 
+  subscription-ui:
+    build:
+      context: ./subscription-ui
+      dockerfile: Dockerfile
+    ports:
+      - "4000:3000"
+    environment:
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+      - FRONTEND_CANCEL_URL=http://localhost:3000/cancel
+    depends_on:
+      subscription-api:
+        condition: service_started
+  audio-storage-ui:
+    build:
+      context: ./audio-storage-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+      - FRONTEND_CANCEL_URL=http://localhost:3000/cancel
+    depends_on:
+      audio-storage-api:
+        condition: service_started
+  user-ui:
+    build:
+      context: ./user-ui
+      dockerfile: Dockerfile
+    ports:
+      - "7000:3000"
+    environment:
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+      - FRONTEND_CANCEL_URL=http://localhost:3000/cancel
+    volumes:
+      - user:/user
+    depends_on:
+      user-api:
+        condition: service_started
 volumes:
   api_gateway:
   audio_storage:
+  payment:
   user:
   postgres_data:
   localstack_data:

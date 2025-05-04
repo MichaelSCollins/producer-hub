@@ -1,15 +1,18 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
+# Copy source code
 COPY . .
-RUN npm run build
 
-EXPOSE 8082
+# Expose port
+EXPOSE 3000
 
-ENV NODE_OPTIONS="--experimental-specifier-resolution=node"
-
-CMD ["npm", "run", "dev"] 
+# Start the applicationw
+CMD ["npm", "run", "dev"]

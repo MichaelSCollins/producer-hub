@@ -3,33 +3,33 @@
 "use server";
 import { UserFormState } from "@/lib/interfaces";
 import api from "@/lib/api/api";
-const processedFormData: any = {}
+const validatedFormData: any = {}
 let errors: any = {}
 let hasFailed = false;
-const processFormValue = (name: string, formData: FormData) => {
+const validateInput = (name: string, formData: FormData) => {
     if (!formData.get(name))
         return undefined
     const value = formData.get(name)?.valueOf()
-    processedFormData[name] = value
+    validatedFormData[name] = value
     return value;
 }
 
-const processFormData = (
+const validateFormData = (
     formData: FormData,
     inputNames: string[],
 ) => {
     inputNames.forEach((name) => {
-        if (!processFormValue(name, formData))
+        if (!validateInput(name, formData))
         {
             errors[name] = {
                 name,
-                message: '' + name + ' is required.'
+                message: name + ' is required.'
             }
             hasFailed = true;
         }
     })
-    if (processedFormData['password']
-        != processedFormData['confirmPassword'])
+    if (validatedFormData['password']
+        != validatedFormData['confirmPassword'])
     {
         errors['password'] = 'Passwords do not match.'
         errors['confirmPassword'] = 'Passwords do not match.'
@@ -46,7 +46,7 @@ const registerAction = async (formData: FormData) => {
     }
     errors = {};
     hasFailed = false;
-    processFormData(
+    validateFormData(
         formData,
         ['email', 'password', 'confirmPassword', 'username'],
     )
@@ -61,7 +61,7 @@ const registerAction = async (formData: FormData) => {
     }
     try
     {
-        const { user: { username } } = await api.register(processedFormData)
+        const { user: { username } } = await api.register(validatedFormData)
         return {
             ...state,
             message: username + " successfully registered",

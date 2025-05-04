@@ -5,7 +5,6 @@ const api = {
     headers: {
         // "Authorization": `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "application/json",
-
         // "X-User-Id": localStorage.getItem("userId"),
     },
     register: async (

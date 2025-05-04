@@ -22,7 +22,7 @@ export const AudioItem = ({
     // onPositionChange,
 }: AudioTrackProps) => {
     const [isLoaded, setIsLoaded] = useState(false);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [, setAudioUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const pixelsPerSecond = useAudioStore((state) => state.pixelsPerSecond);
     const waveformRef = useRef<HTMLDivElement>(null);

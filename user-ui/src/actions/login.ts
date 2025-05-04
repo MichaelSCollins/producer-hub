@@ -1,25 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
-import { InputError, UserFormState } from "@/components/forms/RegisterForm";
+
 import api from "@/lib/api/api";
-const processedFormData: any = {}
+import { UserFormState } from "@/lib/interfaces";
+
+const validatedInputData: any = {}
+
 let errors: any = {}
 let hasFailed = false;
-const processFormValue = (name: string, formData: FormData) => {
-    if (!formData.get(name))
+
+const validateInput = (name: string, formData: FormData) => {
+    const inputValue = formData.get(name)?.valueOf()
+    if (!inputValue)
         return undefined
-    const value = formData.get(name)?.valueOf()
-    processedFormData[name] = value
-    return value;
+    validatedInputData[name] = inputValue
+    return inputValue;
 }
 
-const processFormData = (
+const validateFormData = (
     formData: FormData,
     inputs: any[],
 ) => {
     inputs.forEach((name) => {
-        if (!processFormValue(name, formData))
+        if (!validateInput(name, formData))
         {
             errors[name] = '' + name + ' is required.'
             hasFailed = true;
@@ -30,7 +34,7 @@ const processFormData = (
 const loginAction = async (state: UserFormState, formData: FormData) => {
     errors = {};
     hasFailed = false;
-    processFormData(
+    validateFormData(
         formData,
         ['username', 'password'],
     )
@@ -38,14 +42,14 @@ const loginAction = async (state: UserFormState, formData: FormData) => {
     {
         return {
             ...state,
-            message: '',
+            message: 'Failed to process user input.',
             errors,
             loading: false
         }
     }
     try
     {
-        const response = await api.login(processedFormData)
+        const response = await api.login(validatedInputData)
         return {
             ...state,
             message: JSON.stringify(response),

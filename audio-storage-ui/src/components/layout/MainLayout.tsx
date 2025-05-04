@@ -1,4 +1,4 @@
-import Link from 'next/link';
+// import Link from 'next/link';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -7,20 +7,20 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
     return (
         <div className="bg-gray-50">
-            <nav className="bg-white shadow">
-                <div className="container mx-auto px-4">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            <Link
-                                href="/"
-                                className="flex items-center text-xl font-bold text-blue-400"
-                            >
-                                Audio Viewer
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            {/* </div>//     <nav className="bg-white shadow">
+        //         <div className="container mx-auto px-4">
+        //             <div className="flex justify-between h-16">
+        //                 <div className="flex">
+        //                     <Link
+        //                         href="/"
+        //                         className="flex items-center text-xl font-bold text-blue-400"
+        //                     >
+        //                         Audio Viewer
+        //                     </Link>
+        //                 </div>
+        //             </div>
+        //         </div>
+        //     </nav> */}
             <div className="container mx-auto px-4 py-8">
                 {children}
             </div>
@@ -31,6 +31,6 @@ export function MainLayout({ children }: MainLayoutProps) {
                     </p>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 } 

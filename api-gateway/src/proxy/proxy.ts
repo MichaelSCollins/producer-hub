@@ -1,13 +1,14 @@
-import { Express } from "express";
 import ProxyFactory from "../lib/factory/ProxyFactory";
 import { routes } from "./routes";
+import State from "../state";
+import AppBuilder from "../lib/builder/AppBuilder";
 
-export const useProxies = (app: Express) => {
+export const routeProxies = () => {
     for (const { route, target } of routes)
     {
         const proxy = ProxyFactory.createMiddleware(target)
-        app.use(route, proxy);
+        AppBuilder.app.use(route, proxy);
     };
 }
 
-export default useProxies;
+export default routeProxies;
