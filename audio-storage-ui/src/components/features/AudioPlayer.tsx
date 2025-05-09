@@ -4,6 +4,8 @@ import { useAudioPlayback } from '@/hooks/useAudioPlayback';
 import { AudioTrack } from '@/types/audio';
 import { useState, useEffect } from 'react';
 import { AudioService } from '@/services/audioService';
+import { formatTime } from '@/lib/timeUtil';
+import { FaSpinner } from 'react-icons/fa';
 
 interface AudioPlayerProps {
     track: AudioTrack;
@@ -11,7 +13,12 @@ interface AudioPlayerProps {
     height?: number;
 }
 
-export function AudioPlayer({ track, width = 600, height = 100 }: AudioPlayerProps) {
+export function AudioPlayer({
+    track,
+    width = 600, height = 100
+}: AudioPlayerProps) {
+    const [, setWaveform] = useState<number[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const {
         isPlaying,
         currentTime,
@@ -23,38 +30,25 @@ export function AudioPlayer({ track, width = 600, height = 100 }: AudioPlayerPro
         setVolume,
     } = useAudioPlayback();
 
-    const [, setWaveform] = useState<number[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        async function loadWaveform() {
-            try
-            {
-                const audioService = AudioService.getInstance();
-                const waveformData = await audioService.getTrackWaveform(track.id);
-                setWaveform(waveformData);
-            } catch (error)
-            {
+        const audioService = AudioService.getInstance();
+        audioService.getTrackWaveform(track.id)
+            .then((waveformData) => {
+                ;
+                setWaveform(waveformData)
+            })
+            .catch((error) => {
                 console.error('Failed to load waveform:', error);
                 // Fallback to a simple waveform if loading fails
                 setWaveform(Array.from({ length: 100 }, () => Math.random()));
-            } finally
-            {
+            }).finally(() => {
                 setIsLoading(false);
-            }
-        }
-
-        loadWaveform();
+            })
     }, [track.id]);
 
-    const formatTime = (time: number) => {
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    };
-
     return (
-        <div className="flex flex-col gap-4 p-4 bg-white rounded-lg shadow">
+        <div className="flex flex-col gap-4 p-4 rounded-lg shadow">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{track.name}</h3>
                 <div className="flex items-center gap-2">
@@ -79,10 +73,7 @@ export function AudioPlayer({ track, width = 600, height = 100 }: AudioPlayerPro
                         style={{ width: `${width}px`, height: `${height}px` }}
                     />
                 ) : (
-                    <img
-                        width={width}
-                        height={height}
-                    />
+                    <FaSpinner className="animate-spin text-indigo-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{ width: '24px', height: '24px' }} />
                 )}
                 <div
                     className="absolute top-0 bottom-0 w-1 bg-red-500"

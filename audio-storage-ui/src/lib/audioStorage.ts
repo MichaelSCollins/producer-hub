@@ -3,8 +3,8 @@ import { AudioTrack } from '@/types/audio';
 import axios from 'axios';
 const USER_BASE_URL =
     process.env.NEXT_PUBLIC_USER_API_URL
-    ?? 'http://localhost:7777/api/users/user'; // Updated to use nginx proxy
-const API_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_API_URL; // Updated to use nginx proxy
+    ?? 'http://localhost:5000/api/user'; // Updated to use nginx proxy
+const NEXT_API_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_API_URL; // Updated to use nginx proxy
 
 export interface AudioFileMetadata {
     downloadUrl: string;
@@ -23,7 +23,12 @@ export const audioStorageApi = {
         const response = await fetch(USER_BASE_URL)
         return response.json()
     },
-    uploadAudioFromProject: async (track: any, projectId?: string | null, description?: string, uploadedBy: string = 'user'): Promise<AudioFileMetadata> => {
+    uploadAudioFromProject: async (
+        track: any,
+        projectId?: string | null,
+        description?: string,
+        uploadedBy: string = 'user'
+    ): Promise<AudioFileMetadata> => {
         const inMemoryFile = await fetch(track.url!);
         const blob = await inMemoryFile.blob();
         const file = new File(
@@ -44,7 +49,7 @@ export const audioStorageApi = {
         }
         formData.append('uploadedBy', uploadedBy);
 
-        const response = await axios.post<AudioFileMetadata>(`${API_BASE_URL}/upload`, formData, {
+        const response = await axios.post<AudioFileMetadata>(`${NEXT_API_BASE_URL}/audio/upload`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -58,7 +63,7 @@ export const audioStorageApi = {
 
     downloadAudio: async (id: number): Promise<Blob> => {
         console.log("downloading audio", id)
-        const response = await axios.get(`${API_BASE_URL}/${id}/download`, {
+        const response = await axios.get(`${NEXT_API_BASE_URL}/${id}/download`, {
             responseType: 'blob',
         }).catch(onError);
         if (!response)
@@ -69,7 +74,7 @@ export const audioStorageApi = {
     },
 
     deleteAudio: async (id: string): Promise<void> => {
-        await axios.delete(`${API_BASE_URL}/${id}`)
+        await axios.delete(`${NEXT_API_BASE_URL}/${id}`)
             .catch(onError);
     },
 
@@ -77,7 +82,7 @@ export const audioStorageApi = {
         console.log("getting all audio files")
         const response = await axios
             .get<AudioTrack[]>(
-                `${API_BASE_URL}`
+                `${NEXT_API_BASE_URL}`
             ).catch(onError);
         if (!response)
         {

@@ -1,0 +1,65 @@
+x-common-build: &build-template
+  dockerfile: Dockerfile
+
+x-common-env: &common-env
+  env_file:
+    - .env.api
+
+services:
+  api-gateway:
+    <<: *common-env
+    build:
+      <<: *build-template
+      context: ./api-gateway
+    volumes:
+      - api_gateway:/api_gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      user-api:
+        condition: service_started
+      subscription-api:
+        condition: service_started
+      audio-storage-api:
+        condition: service_started
+
+  audio-storage-api:
+    <<: *common-env
+    build:
+      <<: *build-template
+      context: ./audio-storage-api
+    volumes:
+      - audio_storage:/audio_storage
+    ports:
+      - "8081:8081"
+
+  user-api:
+    <<: *common-env
+    build:
+      <<: *build-template
+      context: ./user-api
+    ports:
+      - "7777:7777"
+    volumes:
+      - user:/user
+
+  subscription-api:
+    <<: *common-env
+    build:
+      <<: *build-template
+      context: ./subscription-api
+    ports:
+      - "4444:4444"
+    volumes:
+      - subscription:/subscription
+    environment:
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - FRONTEND_SUCCESS_URL=http://localhost:3000/success
+      - FRONTEND_CANCEL_URL=http://localhost:3000/cancel
+
+volumes:
+  api_gateway:
+  postgres:
+  audio_storage:
+  subscription:
+  user:

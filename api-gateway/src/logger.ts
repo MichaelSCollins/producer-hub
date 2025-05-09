@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import State from '../state';
-const initializeProxyLogger = () =>
-    State.app.use((req: Request, res: Response, next: NextFunction) => {
+const apply = (app) =>
+    app.use((req: Request, res: Response, next: NextFunction) => {
         console.log(`[API Gateway] Incoming request: ${req.method} -> ${req.originalUrl}`);
         console.log(`[API Gateway] Request Body: ${JSON.stringify(req.body)}`);
         console.log(`[API Gateway] Request Headers: ${JSON.stringify(req.headers)}`);
@@ -12,4 +11,4 @@ const initializeProxyLogger = () =>
         next();
     });
 
-export default initializeProxyLogger;
+export default { apply };

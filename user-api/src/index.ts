@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { MongoDB } from './lib/db/mongo';
 import userRoutes from './routes/userRoutes';
+import corsConfig from './lib/auth/cors.config.';
 
 const app = express();
 const PORT = 7777;
@@ -10,11 +11,7 @@ const PORT = 7777;
 // Middleware
 app.use(bodyParser.json());
 // Configure CORS
-app.use(cors({
-    origin: 'http://localhost:5000', // Replace with the allowed origin(s)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-    credentials: true, // Allow cookies to be sent
-}));
+app.use(corsConfig);
 
 // Routes
 app.use('/api/users', userRoutes);

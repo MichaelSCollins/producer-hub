@@ -30,7 +30,7 @@ class APIJob<T> {
     req!: Request;
     res!: Response;
 
-    task!: (req: Request, res: Response) => Promise<T>;
+    run!: (req: Request, res: Response) => Promise<T>;
     error: (err: any) => void = (err: any) =>
         this.res.status(500).json({
             error: err.message
@@ -46,22 +46,21 @@ class APIJob<T> {
         this.success = callback;
         return this;
     }
-    setRequest(request: Request) {
-        this.req = request;
+    setReq(req: Request, res: Response) {
+        this.req = req
+        this.res = res;
         return this;
     }
-    setResponse(response: Response) {
-        this.res = response;
-        return this;
-    }
-    setTask(callback: () => Promise<T>) {
-        this.task = callback
+    buisinessLogic(callback: () => Promise<T>) {
+        this.run = callback
         return this
     }
-    async execute(req: Request, res: Response): Promise<any> {
+    async process(req: Request, res: Response): Promise<any> {
         // Perform API job
         console.log('API job executed');
-        return await this.task(req, res)
+        return await this
+            .setReq(req, res)
+            .run(req, res)
             .then(this.success)
             .catch(this.error)
     }
@@ -77,7 +76,7 @@ class AuthAPIJob<T> extends APIJob<T> {
             authenticateToken(req, res)
                 ? next(res, req)
                 : this.unauthorized();
-    override async execute(req: Request, res: Response): Promise<void> {
+    override async process(req: Request, res: Response): Promise<void> {
         // if (!authenticateToken(req, res))
         // {
         //     this.unauthorized();
@@ -85,7 +84,7 @@ class AuthAPIJob<T> extends APIJob<T> {
         // }
         try
         {
-            super.execute(req, res)
+            super.process(req, res)
         } catch (err: any)
         {
             console.error(

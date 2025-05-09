@@ -1,18 +1,9 @@
-import express from 'express';
+// router.ts
 import UserController from '../controllers/user';
-import routeProxies from '../proxy/proxy';
-import { healthCheck } from './healthcheck';
-const router = express.Router();
-class AppRouter {
-    static route = (app) => {
-        // healthCheck(); // Health check route
-        // Proxies
-        routeProxies(); // Setup proxy routes
+import { Router } from 'express';
 
-        // router.post('/login', UserController.login);
-        // router.post('/logout', UserController.logout)
-        app.use('/api', router);
-    }
-}
+const router = Router();
+router.post('/login', UserController.login);
+router.post('/logout', UserController.logout);
 
-export default AppRouter;
+export default router;

@@ -6,12 +6,12 @@ export default async function Home() {
   // console.log('token');
   // console.log(token);
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 bg-slate-800">
       <h1 className="text-3xl font-bold mb-8">Audio Tracks</h1>
       {error && (
-        <div className="bg-red-500 text-white p-4 rounded mb-4">
-          <p>{error}</p>
-        </div>)}
+        <p className="bg-red-500 text-white p-4 rounded mb-4">
+          {error}
+        </p>)}
       <AudioUpload />
       <p className="text-lg font-semibold mb-4">Available Audio Files:</p>
       {/* Display the list of audio files */}

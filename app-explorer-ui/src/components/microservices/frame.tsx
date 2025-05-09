@@ -20,7 +20,7 @@ const MicroserviceFrame: React.FC<MicroserviceFrameProps> = ({ serviceName: serv
         <iframe
             src={url}
             title="Microservice"
-            className="w-full h-screen"
+            className="w-full h-screen bg-gray-700"
         />
     );
 };

@@ -54,11 +54,16 @@ const RegisterForm: React.FC = () => {
                 registrationState.error = undefined
                 registrationState.loading = true
             }}
-            className="bg-white p-6 rounded shadow-md w-96" >
+            className="bg-white/50 p-6 rounded shadow-md w-96" >
             <h1 className="text-2xl font-bold text-primary mb-4">Register</h1>
             {
                 registrationState?.error && <p className="text-red-500 text-lg">
                     {registrationState?.error}
+                </p>
+            }
+            {
+                registrationState?.message && <p className="text-rose-500 text-lg">
+                    {registrationState?.message}
                 </p>
             }
             <p className="text-green-400">{registrationState.message}</p>
@@ -106,14 +111,14 @@ const UserFormInput = ({
     placeholder,
     label,
     type,
-    error
+    error,
 }: UserFormInputProps) => {
     return <fieldset className="flex flex-col p-1 justify-between *:text-nowrap hover:*:border-indigo-500">
         <label htmlFor={name}>{label}</label>
         {error && <p className="text-red-500 text-xs">{error}</p>}
         <input
             className="bg-none p-1 border border-slate-900 rounded-lg"
-            name={name} placeholoder={placeholder} type={type} />
+            name={name} placeholder={placeholder} type={type} />
     </fieldset>
 }
 export default RegisterForm;

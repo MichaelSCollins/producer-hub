@@ -4,7 +4,7 @@ import endpoints from "./api.config"
 const api = {
     headers: {
         // "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
+        // "Content-Type": "application/json",
         // "X-User-Id": localStorage.getItem("userId"),
     },
     register: async (
@@ -22,10 +22,14 @@ const api = {
     login: async (
         body: LoginRequest
     ) => {
+        console.log("[POST]: ", endpoints.login, body)
         return await api.post<LoginRequest>(
             endpoints.login,
-            body
-        );
+            body,
+        ).catch((e) => {
+            console.error(e.message)
+            throw e;
+        })
     },
     getCurrentUser: async (
     ) => {

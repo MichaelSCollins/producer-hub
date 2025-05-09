@@ -31,7 +31,11 @@ const validateFormData = (
     })
 }
 
-const loginAction = async (state: UserFormState, formData: FormData) => {
+const loginAction = async (
+    state: UserFormState,
+    formData: FormData
+) => {
+    console.log("Login action")
     errors = {};
     hasFailed = false;
     validateFormData(
@@ -40,6 +44,7 @@ const loginAction = async (state: UserFormState, formData: FormData) => {
     )
     if (hasFailed)
     {
+        console.error("validation failed", errors)
         return {
             ...state,
             message: 'Failed to process user input.',
@@ -49,7 +54,15 @@ const loginAction = async (state: UserFormState, formData: FormData) => {
     }
     try
     {
-        const response = await api.login(validatedInputData)
+        const response = await api.login(validatedInputData).catch((e) => {
+            console.error("Login client error: ", e.message)
+            throw e;
+        }
+        ).then((res) => {
+            console.log("Login response: ", res.statusText)
+            return res
+        })
+        console.log("Login complete! ", JSON.stringify(response))
         return {
             ...state,
             message: JSON.stringify(response),
@@ -57,10 +70,12 @@ const loginAction = async (state: UserFormState, formData: FormData) => {
         }
     } catch (e: any)
     {
+        const error = "An error occurred while logging in: " + e.message;
+        console.error(error)
         return {
             ...state,
             message: '',
-            error: "An error occurred while registering: " + e.message,
+            error,
             loading: false
         }
     }

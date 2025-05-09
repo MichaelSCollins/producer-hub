@@ -1,7 +1,7 @@
 import { AudioTrack } from '@/types/audio';
 import Cookies from "../../node_modules/@types/js-cookie";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_API_URL || 'http://localhost:8081';
+const NEXT_API_BASE_URL = process.env.NEXT_PUBLIC_AUDIO_API_URL || 'http://localhost:8081';
 const cookieStore = Cookies
 
 class AudioServiceError extends Error {
@@ -33,7 +33,7 @@ export class AudioService {
             throw new AudioServiceError('User ID not found');
         }
 
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(`${NEXT_API_BASE_URL}${endpoint}`, {
             ...options,
             headers: {
                 'Content-Type': 'application/json',

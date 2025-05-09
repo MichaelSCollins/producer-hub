@@ -7,5 +7,5 @@ import java.util.UUID
 
 @Repository
 interface AudioFileRepository : JpaRepository<AudioFile, Long> {
-    fun findByUserId(userId: Long): List<AudioFile>
+    fun findByUserId(userId: String): List<AudioFile>
 }

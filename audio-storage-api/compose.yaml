@@ -2,26 +2,26 @@ services:
   app:
     build: .
     ports:
-      - "8081:8081"
+    "8081:8081"
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - AWS_ACCESS_KEY=test
-      - AWS_SECRET_KEY=test
-      - AWS_REGION=us-east-2
-      - AWS_S3_BUCKET=mikedevportfolio
-      - STORAGE_TYPE=s3
+    SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+    SPRING_DATASOURCE_USERNAME=postgres
+    SPRING_DATASOURCE_PASSWORD=postgres
+    AWS_ACCESS_KEY=test
+    AWS_SECRET_KEY=test
+    AWS_REGION=us-east-2
+    AWS_S3_BUCKET=mikedevportfolio
+    STORAGE_TYPE=s3
   postgres:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+    "5432:5432"
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+    POSTGRES_DB=postgres
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s

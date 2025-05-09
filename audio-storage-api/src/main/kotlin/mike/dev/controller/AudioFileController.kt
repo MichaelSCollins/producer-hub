@@ -70,7 +70,7 @@ class AudioFileController(private val audioFileService: AudioFileService) {
 
     @GetMapping("/{userId}")
     fun listFiles(
-        @PathVariable userId: Long
+        @PathVariable userId: String = "guest"
     ): ResponseEntity<List<AudioFileResponse>> {
         val files = audioFileService.listAll(userId)
         return ResponseEntity.ok(files)
@@ -94,7 +94,8 @@ class AudioFileController(private val audioFileService: AudioFileService) {
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<Map<String, String>> {
-        logger.error(e) { "Unhandled exception occurred: ${e.message}" }
+        logger.error(e) {
+            "Unhandled exception occurred: ${e.message}" }
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(mapOf("error" to (e.message ?: "An unexpected error occurred")))

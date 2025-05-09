@@ -6,7 +6,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
     return (
-        <div className="bg-gray-50">
+        <div className="bg-gray-700">
             {/* </div>//     <nav className="bg-white shadow">
         //         <div className="container mx-auto px-4">
         //             <div className="flex justify-between h-16">
@@ -21,10 +21,10 @@ export function MainLayout({ children }: MainLayoutProps) {
         //             </div>
         //         </div>
         //     </nav> */}
-            <div className="container mx-auto px-4 py-8">
+            <div className="mx-auto p-4">
                 {children}
             </div>
-            <footer className="bg-white shadow absolute bottom-0 z-50 right-0">
+            <footer className="shadow absolute bottom-0 z-50 right-0">
                 <div className="container mx-auto px-4 py-6">
                     <p className="text-center text-gray-600">
                         © {new Date().getFullYear()} Audio Viewer. All rights reserved.

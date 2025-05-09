@@ -60,7 +60,10 @@ const AudioControls = ({ track, wavesurfer }: AudioControlsProps) => {
                 {...attributes}
                 {...listeners}
             >
-                <div className="flex justify-end items-center space-x-4 cursor-pointer">
+                <div className={`
+                    flex justify-end items-center 
+                    space-x-4 cursor-pointer
+                `} >
                     <button
                         className={`h-10 w-10  rounded ${isPlaying ? 'bg-green-400 text-white' : 'bg-blue-800'
                             } hover:bg-green-500 cursor-pointer text-white hover:text-white`}
@@ -83,7 +86,7 @@ const AudioControls = ({ track, wavesurfer }: AudioControlsProps) => {
                             } hover:bg-red-500 cursor-pointer text-white hover:text-white`}
                         onClick={() => {
                             console.log('Toggle delete');
-                            audioStorageApi.deleteAudio(id);                                                                                                                                                                                                                
+                            audioStorageApi.deleteAudio(id);
                             window.location.reload();
                         }}
                     >

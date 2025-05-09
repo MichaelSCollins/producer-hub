@@ -52,30 +52,28 @@ const registerAction = async (formData: FormData) => {
     )
     if (hasFailed)
     {
-        return {
-            ...state,
-            message: '',
+        return Object.assign(state, {
+            message: 'Invalid input.',
             errors,
             loading: false
-        }
+        })
     }
-    try
-    {
-        const { user: { username } } = await api.register(validatedFormData)
-        return {
-            ...state,
-            message: username + " successfully registered",
-            loading: false
-        }
-    } catch (e: any)
-    {
-        return {
-            ...state,
-            message: '',
+    return await api.register(
+        validatedFormData
+    ).catch((e: any) => {
+        return Object.assign(state, {
+            message: 'Registration Failed....',
             error: "An error occurred while registering: " + e.message,
             loading: false
-        }
-    }
+        })
+    }).then((response) => {
+        return Object.assign(state, {
+            message: response.data.username + "... Account created!",
+            loading: false,
+            errors: {},
+            error: undefined
+        })
+    })
 }
 
 export default registerAction

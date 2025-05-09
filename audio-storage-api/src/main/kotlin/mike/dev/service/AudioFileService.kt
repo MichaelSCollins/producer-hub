@@ -36,7 +36,8 @@ class AudioFileService(
             contentType = file.contentType ?: "application/octet-stream",
             size = file.size,
             storageType = if (storageType == "s3") StorageType.S3 else StorageType.LOCAL,
-            storageLocation = location
+            storageLocation = location,
+            userId = "guest"
         )
 
         val savedFile = audioFileRepository.save(audioFile)
@@ -85,7 +86,7 @@ class AudioFileService(
         }
     }
 
-    fun listAll(userId: Long? = null): List<AudioFileResponse> {
+    fun listAll(userId: String? = null): List<AudioFileResponse> {
         return if(userId == null)
             audioFileRepository.findAll().map {
                 createAudioFileResponse(it)
@@ -105,7 +106,8 @@ class AudioFileService(
             contentType = file.contentType ?: "application/octet-stream",
             size = file.size,
             storageType = if (forceLocal) StorageType.LOCAL else if (storageType == "s3") StorageType.S3 else StorageType.LOCAL,
-            storageLocation = location
+            storageLocation = location,
+            userId = "af_guest"
         )
 
         val savedFile = audioFileRepository.save(audioFile)

@@ -1,7 +1,5 @@
 FROM node:23-alpine
 
-
-
 WORKDIR /app
 
 # Copy package files

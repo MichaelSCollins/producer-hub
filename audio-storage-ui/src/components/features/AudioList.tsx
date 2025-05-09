@@ -7,6 +7,7 @@ import { AudioTrack } from "@/types/audio";
 import { useEffect, useState } from "react";
 
 const AudioCriteriaList = () => {
+    const [message, setMessage] = useState<string | undefined>()
     const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
     const [filteredTracks, setFilteredTracks] = useState<AudioTrack[]>([]);
     // This function can be used to search for audio files by name
@@ -16,6 +17,7 @@ const AudioCriteriaList = () => {
         // Fetch all audio files from the API and set the state
         audioStorageApi.getAllAudioFiles().then((tracks) => {
             console.log("Fetched tracks", tracks)
+            setMessage(JSON.stringify(tracks, null, 2))
             setAudioTracks(tracks);
         }).catch((error) => {
             console.error('Failed to fetch audio files:', error)
@@ -43,6 +45,7 @@ const AudioCriteriaList = () => {
             );
             setFilteredTracks(filteredTracks);
             console.log("Filtered tracks", filteredTracks)
+            setMessage("Filtered tracks" + JSON.stringify(filteredTracks, null, 2))
         } catch (e: any)
         {
             setError(e.message)
@@ -53,6 +56,7 @@ const AudioCriteriaList = () => {
     console.log({ searchQuery, filteredTracks, audioTracks })
     return (
         <div>
+            <p className="text-blue-500">{message}</p>
             <p className="text-red-500">{error}</p>
             <input className='mb-4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent'
                 type="text"
@@ -61,7 +65,7 @@ const AudioCriteriaList = () => {
             // This input can be used to filter the audio list by name
             />
             <div className="space-y-6 max-h-96 overflow-y-auto p-4 bg-white rounded-lg shadow-md">
-                {filteredTracks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ?.map((track: AudioTrack) => (
+                {filteredTracks?.map((track: AudioTrack) => (
                     <AudioItem key={track.id}
                         track={track}
                         currentTime={0}

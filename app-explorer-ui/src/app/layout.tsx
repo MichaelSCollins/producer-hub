@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="">
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-gray-700">
           <Navbar />
           <main className="">{children}</main>
           <footer className="bg-gray-800 text-white text-center py-4 border w-full">

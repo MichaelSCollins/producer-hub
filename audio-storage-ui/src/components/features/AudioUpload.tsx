@@ -1,9 +1,10 @@
 "use client"
 import UIJob from "@/lib/facade/UIJob";
 import { audioStorageApi } from "@/lib/audioStorage";
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useRef } from "react";
 
 const AudioUpload = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [audio, setAudio] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState<string | null>(null);
@@ -16,12 +17,12 @@ const AudioUpload = () => {
   const handleSuccess = (message: string) => {
     setSuccess(message);
   }
-  const beforeAll = () => {
+  const before = () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
   }
-  const afterAll = () => {
+  const after = () => {
     setLoading(false);
   }
   const handleAudioChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -36,12 +37,12 @@ const AudioUpload = () => {
   };
   const changeFileJob = new UIJob();
   changeFileJob.setJobFunction(handleAudioChange)
-    .before(beforeAll)
-    .after(afterAll)
+    .before(before)
+    .after(after)
     .error(handleError)
     .success(handleSuccess);
   const uploadJob = new UIJob()
-    .before(beforeAll)
+    .before(before)
     .setJobFunction(async () => {
       if (audio)
       {
@@ -50,16 +51,17 @@ const AudioUpload = () => {
         await audioStorageApi.uploadAudio(audio);
       }
     })
-    .after(afterAll)
+    .after(after)
     .error(handleError)
     .success(() => {
       window.location.reload();
       handleSuccess(audio?.name || "Audio uploaded");
     });
   return (
-    <div className={`relative h-full flex flex-col cursor-pointer
+    <div className={`relative flex flex-col cursor-pointer
       bg-slate-900/40 rounded-lg p-2 mb-2
-      cursor-pointer-800/40`}>
+      cursor-pointer-800/40`}
+      onClick={() => fileInputRef.current?.click()}>
       <h1>Upload Local File:</h1>
       <div className="flex flex-col gap-2 justify-left">
         {error && <p className="text-red-400">Error: {error}</p>}
@@ -69,10 +71,20 @@ const AudioUpload = () => {
       <div className="flex gap-2 justify-between w-full">
         {!loading
           && <div
-            className="flex flex-col justify-left border-4 h-full border-slate-400 text-center rounded-lg p-2"
+            className={`
+              flex flex-col justify-left 
+              border-4 border-slate-400 
+              text-center 
+              rounded-lg p-2`}
           >
             {audioName && <p className="text-xs px-3">{audioName}</p>}
-            {!audioUrl && <input type="file" accept="audio/*" className="cursor-pointer" src={audioUrl ?? undefined} onChange={changeFileJob.execute} />}
+            {!audioUrl && <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              className="cursor-pointer"
+              src={audioUrl ?? undefined}
+              onChange={changeFileJob.execute} />}
             {audioUrl && <audio src={audioUrl} controls
               className="rounded-lg cursor-pointer shadow-lg p-2 bg-none"
             />}

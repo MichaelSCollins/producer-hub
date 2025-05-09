@@ -13,6 +13,8 @@ data class AudioFile(
     @Column(nullable = false)
     val filename: String,
     @Column(nullable = false)
+    val userId: String,
+    @Column(nullable = false)
     val originalFilename: String,
     @Column(nullable = false)
     val contentType: String,

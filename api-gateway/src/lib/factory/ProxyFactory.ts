@@ -12,7 +12,7 @@ class ProxyFactory {
         return ProxyFactory.instance;
     }
 
-    public static createMiddleware(target: string) {
+    public static createProxyMiddleware(target: string) {
         return createProxyMiddleware(target)
     }
 
