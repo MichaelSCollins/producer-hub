@@ -2,13 +2,13 @@ x-common-build: &build-template
   dockerfile: Dockerfile
 
 x-common-env: &common-env
+  volumes:
+    - ui:/ui
   env_file:
     - .env.UI
 
 services:
   subscription-ui:
-    volumes:
-      - subscription:/subscription
     ports:
       - "4000:3000"
     build:
@@ -17,8 +17,6 @@ services:
     <<: *common-env
 
   audio-storage-ui:
-    valumes:
-      - audio_storage:/audio_storage
     ports:
       - "3001:3000"
     build:
@@ -29,14 +27,12 @@ services:
   user-ui:
     ports:
       - "7000:3000"
-    volumes:
-      - user:/user
     build:
       context: ./user-ui
       <<: *build-template
     <<: *common-env
 
 volumes:
-  audio_storage:
-  subscription:
-  user:
+  ui:
+
+
